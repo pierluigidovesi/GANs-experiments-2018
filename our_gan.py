@@ -139,6 +139,7 @@ def get_trainable_variables():
 # GENERATOR
 # ----- Noise + Labels(G) ----- #
 input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
+test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
 
 # DISCRIMINATOR
 # ------ Real Samples(D) ------ #
@@ -149,6 +150,8 @@ labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
 # ----------------------------------- Outputs ----------------------------------- #
 fake_samples = generator(BATCH_SIZE, input_generator)
+test_samples = generator(10, test_input, reuse=True)
+
 disc_real_score, disc_real_labels = discriminator(real_samples)
 disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
@@ -272,7 +275,7 @@ with tf.Session() as session:
 			sorted_labels = np.eye(10)
 			sorted_labels_with_noise = np.concatenate((sorted_labels,
 			                                           test_noise), axis=1)
-			generated_img = session.run([fake_samples],
+			generated_img = session.run([test_samples],
 			                            feed_dict={input_generator: sorted_labels_with_noise})
 
 			generate_images(generated_img, iteration)
