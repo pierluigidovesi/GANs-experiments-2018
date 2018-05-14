@@ -29,17 +29,17 @@ channel_first = False
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
-	#plt.figure()
+	# plt.figure()
 	plt.figure(figsize=(100, 10))
-	test_image_stack = np.squeeze((np.array(images, dtype = np.float32)* 127.5) + 127.5)
+	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
 	for i in range(10):
-		new_image = test_image_stack[i].reshape(28,28)
-		plt.subplot(1,10,i+1)
+		new_image = test_image_stack[i].reshape(28, 28)
+		plt.subplot(1, 10, i + 1)
 		plt.axis("off")
 		plt.imshow(new_image)
 		plt.axis("off")
 	plt.axis("off")
-	plt.savefig("epoch_"+str(epoch)+".png")
+	plt.savefig("epoch_" + str(epoch) + ".png")
 
 
 def generator(n_samples, noise_with_labels, reuse=None):
@@ -263,7 +263,7 @@ with tf.Session() as session:
 				                                      real_samples: img_samples,
 				                                      labels: img_labels})
 				disc_cost_sum += disc_cost
-				# END FOR MICRO BATCHES
+			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
 			# GENERATOR TRAINING
 			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
@@ -274,34 +274,35 @@ with tf.Session() as session:
 			                                              generator_noise), axis=1)
 			gen_cost, _ = session.run([generator_loss,
 			                           generator_optimizer],
-			                           feed_dict={input_generator: generator_labels_with_noise,
-			                                      labels: fake_labels_onehot})
+			                          feed_dict={input_generator: generator_labels_with_noise,
+			                                     labels: fake_labels_onehot})
 			generator_history.append(gen_cost)
 
 			test_noise = np.random.rand(10, latent_dim)
 			sorted_labels = np.eye(10)
 			sorted_labels_with_noise = np.concatenate((sorted_labels,
 			                                           test_noise), axis=1)
-			# END FOR MACRO BATCHES
+		# END FOR MACRO BATCHES
 		generated_img = session.run([test_samples],
-			                            feed_dict={test_input: sorted_labels_with_noise})
+		                            feed_dict={test_input: sorted_labels_with_noise})
 
 		generate_images(generated_img, iteration)
-		print(" time: ", time.time()-start_time)
-	# END FOR EPOCHS
+		print(" time: ", time.time() - start_time)
 
-# SAVE & PRINT LOSSES
-# discriminator_history = np.asarray(discriminator_history)
-plt.figure()
-gen_line = plt.plot(generator_history, label="Generator Loss")
-disc_line = plt.plot(discriminator_history, label="Discriminator Loss")
-plt.legend([gen_line, disc_line], ["Generator Loss", "Discriminator Loss"])
-plt.savefig("all_losses.png")
+		if iteration % 10 == 0 or iteration == (num_epochs - 1):
+			# SAVE & PRINT LOSSES
+			plt.figure()
+			gen_line = plt.plot(generator_history, label="Generator Loss")
+			disc_line = plt.plot(discriminator_history, label="Discriminator Loss")
+			plt.legend([gen_line, disc_line], ["Generator Loss", "Discriminator Loss"])
+			plt.savefig("all_losses.png")
 
-loss_file = open('gen_loss.txt', 'w')
-for item in generator_history:
-	loss_file.write("%s\n" % item)
+			loss_file = open('gen_loss.txt', 'w')
+			for item in generator_history:
+				loss_file.write("%s\n" % item)
 
-loss_file = open('disc_loss.txt', 'w')
-for item in discriminator_history:
-	loss_file.write("%s\n" % item)
+			loss_file = open('disc_loss.txt', 'w')
+			for item in discriminator_history:
+				loss_file.write("%s\n" % item)
+
+		# END FOR EPOCHS
