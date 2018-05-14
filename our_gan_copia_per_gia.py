@@ -17,8 +17,8 @@ num_epochs = 10
 
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
-GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
-MISCL_WEIGHT = 1.3
+GRADIENT_PENALTY_WEIGHT = 9  # As per the paper
+MISCL_WEIGHT = 1.4
 OUTPUT_DIM = 784
 disc_iters = 5
 num_labels = 10
@@ -193,7 +193,7 @@ differences = fake_samples - real_samples
 interpolates = real_samples + alpha * differences
 gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
 slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-gradient_penalty = tf.reduce_mean((slopes - 0.89) ** 2)
+gradient_penalty = tf.reduce_mean((slopes - 0.85) ** 2)
 
 # sum losses
 discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real*MISCL_WEIGHT + gradient_penalty
