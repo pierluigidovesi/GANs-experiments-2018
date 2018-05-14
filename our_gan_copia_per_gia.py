@@ -18,7 +18,7 @@ num_epochs = 12
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 9  # As per the paper
-MISCL_WEIGHT = 1.4
+MISCL_WEIGHT = 1.2
 OUTPUT_DIM = 784
 disc_iters = 5
 num_labels = 10
@@ -174,12 +174,12 @@ gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
 # labels
 labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
                                                                logits=disc_fake_labels)
-generator_loss = gen_wasserstein_loss*MISCL_WEIGHT + labels_penalty_fakes*MISCL_WEIGHT
+generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
 
 # ----- Disc Loss ----- #
 
 # wasserstein
-disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)*MISCL_WEIGHT
+disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
 
 # labels
 labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
