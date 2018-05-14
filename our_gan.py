@@ -285,7 +285,7 @@ with tf.Session() as session:
 			                            feed_dict={test_input: sorted_labels_with_noise})
 
 		generate_images(generated_img, iteration)
-		print(" time: "time.time()-start_time)
+		print(" time: ", time.time()-start_time)
 	# END FOR EPOCHS
 
 # SAVE & PRINT LOSSES
