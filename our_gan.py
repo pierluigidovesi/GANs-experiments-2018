@@ -26,6 +26,17 @@ DIM = 64
 channel_first = False
 
 
+def generate_images(images, epoch):
+	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
+	# shape 10x784
+	test_image_stack = (images * 127.5) + 127.5
+	for i in range(10):
+		new_image = test_image_stack[i].reshape(28,28)
+		plt.subplot(1,10,i)
+		plt.imshow(new_image)
+	plt.savefig("epoch_"+str(epoch)+".png")
+
+
 def generator(n_samples, noise_with_labels, reuse=None):
 	"""
     :param n_samples:         number of samples
@@ -193,7 +204,7 @@ discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
-X_train = (X_train-127.5)/127.5
+X_train = (X_train - 127.5) / 127.5
 
 y_train = np.concatenate((y_train, y_test), axis=0)
 y_hot = np.zeros((y_train.shape[0], 10))
@@ -222,7 +233,7 @@ with tf.Session() as session:
 
 		# MACRO BATCHES FOR
 		for i in range(num_macro_batches):  # macro batches
-			#print("macro_batch: ", i)
+			# print("macro_batch: ", i)
 			discriminator_macro_batches = X_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			labels_macro_batches = y_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			noise_macro_batches = np.random.rand(macro_batches_size, latent_dim)
@@ -230,7 +241,7 @@ with tf.Session() as session:
 
 			# (MICRO) BATCHES FOR
 			for j in range(disc_iters):  # batches
-				#print("micro batches: ", j)
+				# print("micro batches: ", j)
 				# DISCRIMINATOR TRAINING
 				img_samples = discriminator_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
 				img_labels = labels_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
@@ -239,35 +250,44 @@ with tf.Session() as session:
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 				disc_cost, _ = session.run([discriminator_loss,
 				                            discriminator_optimizer],
-				                            feed_dict={input_generator: discriminator_labels_with_noise,
-				                                       real_samples: img_samples,
-				                                       labels: img_labels})
+				                           feed_dict={input_generator: discriminator_labels_with_noise,
+				                                      real_samples: img_samples,
+				                                      labels: img_labels})
 				disc_cost_sum += disc_cost
 			discriminator_history.append(np.mean(disc_cost_sum))
 			# GENERATOR TRAINING
 			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
-			fake_labels = np.random.randint(low= 0, high=9, size=[BATCH_SIZE,])
+			fake_labels = np.random.randint(low=0, high=9, size=[BATCH_SIZE, ])
 			fake_labels_onehot = np.zeros((BATCH_SIZE, 10))
 			fake_labels_onehot[np.arange(BATCH_SIZE), fake_labels] = 1
 			generator_labels_with_noise = np.concatenate((fake_labels_onehot,
 			                                              generator_noise), axis=1)
 			gen_cost, _ = session.run([generator_loss,
-			                          generator_optimizer],
-			                          feed_dict={input_generator: generator_labels_with_noise,
-			                                     labels: fake_labels_onehot})
+			                           generator_optimizer],
+			                           feed_dict={input_generator: generator_labels_with_noise,
+			                                      labels: fake_labels_onehot})
 			generator_history.append(gen_cost)
 
-  # SAVE & PRINT LOSSES
-#discriminator_history = np.asarray(discriminator_history)
-gen_line  = plt.plot(generator_history, label="Generator Loss")
+			test_noise = np.random.rand(10, latent_dim)
+			sorted_labels = np.eye(10)
+			sorted_labels_with_noise = np.concatenate((sorted_labels,
+			                                           test_noise), axis=1)
+			generated_img = session.run([fake_samples],
+			                            feed_dict={input_generator: sorted_labels_with_noise})
+
+			generate_images(generated_img, iteration)
+
+# SAVE & PRINT LOSSES
+# discriminator_history = np.asarray(discriminator_history)
+gen_line = plt.plot(generator_history, label="Generator Loss")
 disc_line = plt.plot(discriminator_history, label="Discriminator Loss")
 plt.legend([gen_line, disc_line], ["Generator Loss", "Discriminator Loss"])
 plt.savefig("all_losses.png")
 
 loss_file = open('gen_loss.txt', 'w')
 for item in generator_history:
-    loss_file.write("%s\n" % item)
+	loss_file.write("%s\n" % item)
 
 loss_file = open('disc_loss.txt', 'w')
 for item in discriminator_history:
-    loss_file.write("%s\n" % item)
+	loss_file.write("%s\n" % item)
