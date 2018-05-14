@@ -1,15 +1,15 @@
+
 import os, sys
-import tensorflow as tf
-from tensorflow import layers
 sys.path.append(os.getcwd())
-
+import numpy as np
+import tensorflow as tf
 import time
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import numpy as np
 import sklearn.datasets
+from tensorflow import layers
+
 
 
 
@@ -38,11 +38,11 @@ def generator(n_samples, noise_with_labels, reuse = None):
         if channel_first:
             # size: 128 x 7 x 7
             output = tf.reshape(output, (-1, 4*64, 4, 4))
-            bn_axis = [0, 2, 3]  # first
+            bn_axis = 1 #[0, 2, 3]  # first
         else:
             # size: 7 x 7 x 128
             output = tf.reshape(output, (-1, 4, 4, 4*64))
-            bn_axis = [0, 1, 2]  # last
+            bn_axis = -1#[0, 1, 2]  # last
 
         # ----- Layer2, deConv, Batch, Leaky ----- #
         output = layers.conv2d_transpose(output, filters=4*DIM, kernel_size=(5,5), strides=2, padding='same')
@@ -67,6 +67,7 @@ def generator(n_samples, noise_with_labels, reuse = None):
         output = layers.conv2d_transpose(output, filters=1, kernel_size=(5, 5), strides=1, padding='same')
         output = tf.nn.sigmoid(output)
 
+        output = tf.reshape(output, [-1, OUTPUT_DIM])
         print('Generator output size:')
         print(output)
 
@@ -103,7 +104,9 @@ def discriminator(images, reuse = None):
         print('Discriminator output size:')
         print(output)
 
-    return output
+    scores_out = tf.identity(output[:, :1], name='scores_out')
+    labels_out = tf.identity(output[:, 1:], name='labels_out')
+    return scores_out, labels_out
 
 def get_trainable_variables():
     """
@@ -115,19 +118,26 @@ def get_trainable_variables():
     return d_vars, g_vars
 
 # --------------------------------- Placeholders ------------------------------- #
+
+# GENERATOR
 # ----- Noise + Labels(G) ----- #
 input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim+num_labels])
+
+
+# DISCRIMINATOR
 # ------ Real Samples(D) ------ #
 real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
+
 # -------- Labels(D) ---------- #
 labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
+
 # ----------------------------------- Outputs ----------------------------------- #
 fake_samples = generator(BATCH_SIZE, input_generator)
-disc_real = discriminator(real_samples)
-disc_fake = discriminator(fake_samples, reuse = True)
+disc_real_score, disc_real_labels = discriminator(real_samples)
+disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse = True)
 
-# Trainable varables
+# Trainable variables
 d_vars, g_vars = get_trainable_variables()
 
 
@@ -137,7 +147,36 @@ d_vars, g_vars = get_trainable_variables()
 
 # ----- Gen Loss ----- #
 
+# wasserstein
+gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score) #WASSERSTEIN
+
+# labels
+labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels, # (deprecated)
+                                                               logits=disc_fake_labels)
+generator_loss = gen_wasserstein_loss + labels_penalty_fakes
+
+
 # ----- Disc Loss ----- #
+
+# wasserstein
+disc_wasserstein_loss = tf.reduce_mean(disc_fake_score)-tf.reduce_mean(disc_real_score)
+
+# labels
+labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels, # (deprecated)
+                                                               logits=disc_fake_labels)
+labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels, # (deprecated)
+                                                               logits=disc_real_labels)
+
+# gradient penalty
+alpha = tf.random_uniform(shape=[BATCH_SIZE,1], minval= 0., maxval=1.)
+differences = fake_samples - real_samples
+interpolates = real_samples+alpha*differences
+gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
+slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
+gradient_penalty = tf.reduce_mean((slopes-1.)**2)
+
+# sum losses
+discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real + gradient_penalty
 
 
 # ------------------------------------- Train ------------------------------------- #
