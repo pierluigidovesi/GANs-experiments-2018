@@ -13,7 +13,7 @@ from tensorflow import layers
 from keras.datasets import mnist
 from tqdm import tqdm
 
-num_epochs = 1  
+num_epochs = 5
 
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
@@ -221,7 +221,7 @@ with tf.Session() as session:
 		y_train = y_train[indices]
 
 		# MACRO BATCHES FOR
-		for i in tqdm(range(num_macro_batches)):  # macro batches
+		for i in range(num_macro_batches):  # macro batches
 			#print("macro_batch: ", i)
 			discriminator_macro_batches = X_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			labels_macro_batches = y_train[i * macro_batches_size:(i + 1) * macro_batches_size]
