@@ -87,8 +87,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		output = tf.nn.tanh(output)
 
 		output = tf.reshape(output, [-1, OUTPUT_DIM])
-		print('Generator output size:')
-		print(output)
+		#print('Generator output size:')
+		#print(output)
 
 	return output
 
@@ -121,8 +121,8 @@ def discriminator(images, reuse=None):
 		# ----- Layer4, Dense, Linear ----- #
 		output = layers.dense(output, units=11)
 
-		print('Discriminator output size:')
-		print(output)
+		#print('Discriminator output size:')
+		#print(output)
 
 	scores_out = tf.identity(output[:, :1], name='scores_out')
 	labels_out = tf.identity(output[:, 1:], name='labels_out')
