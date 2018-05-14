@@ -13,7 +13,7 @@ from tensorflow import layers
 from keras.datasets import mnist
 import time
 
-num_epochs = 10
+num_epochs = 12
 
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
@@ -174,12 +174,12 @@ gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
 # labels
 labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
                                                                logits=disc_fake_labels)
-generator_loss = gen_wasserstein_loss + labels_penalty_fakes*MISCL_WEIGHT
+generator_loss = gen_wasserstein_loss*MISCL_WEIGHT + labels_penalty_fakes*MISCL_WEIGHT
 
 # ----- Disc Loss ----- #
 
 # wasserstein
-disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
+disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)*MISCL_WEIGHT
 
 # labels
 labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
