@@ -276,7 +276,7 @@ with tf.Session() as session:
 			sorted_labels_with_noise = np.concatenate((sorted_labels,
 			                                           test_noise), axis=1)
 			generated_img = session.run([test_samples],
-			                            feed_dict={input_generator: sorted_labels_with_noise})
+			                            feed_dict={test_input: sorted_labels_with_noise})
 
 			generate_images(generated_img, iteration)
 
