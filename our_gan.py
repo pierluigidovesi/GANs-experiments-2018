@@ -11,12 +11,14 @@ import matplotlib.pyplot as plt
 import sklearn.datasets
 from tensorflow import layers
 from keras.datasets import mnist
+from tqdm import tqdm
+
+num_epochs = 1  
 
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
 OUTPUT_DIM = 784
-num_epochs = 1
 disc_iters = 5
 num_labels = 10
 latent_dim = 128
@@ -219,8 +221,7 @@ with tf.Session() as session:
 		y_train = y_train[indices]
 
 		# MACRO BATCHES FOR
-		for i in range(num_macro_batches):  # macro batches
-			print(".", end="")
+		for i in tqdm(range(num_macro_batches)):  # macro batches
 			#print("macro_batch: ", i)
 			discriminator_macro_batches = X_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			labels_macro_batches = y_train[i * macro_batches_size:(i + 1) * macro_batches_size]
@@ -242,7 +243,7 @@ with tf.Session() as session:
 				                                       real_samples: img_samples,
 				                                       labels: img_labels})
 				disc_cost_sum += disc_cost
-				discriminator_history.append(np.mean(disc_cost_sum))
+			discriminator_history.append(np.mean(disc_cost_sum))
 			# GENERATOR TRAINING
 			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
 			fake_labels = np.random.randint(low= 0, high=9, size=[BATCH_SIZE,])
