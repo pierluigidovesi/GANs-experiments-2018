@@ -18,6 +18,7 @@ num_epochs = 10
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
+MISCL_WEIGHT = 1.5
 OUTPUT_DIM = 784
 disc_iters = 5
 num_labels = 10
@@ -173,7 +174,7 @@ gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
 # labels
 labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
                                                                logits=disc_fake_labels)
-generator_loss = gen_wasserstein_loss + labels_penalty_fakes
+generator_loss = gen_wasserstein_loss + labels_penalty_fakes*MISCL_WEIGHT
 
 # ----- Disc Loss ----- #
 
@@ -192,10 +193,10 @@ differences = fake_samples - real_samples
 interpolates = real_samples + alpha * differences
 gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
 slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-gradient_penalty = tf.reduce_mean((slopes - 0.9) ** 2)
+gradient_penalty = tf.reduce_mean((slopes - 0.89) ** 2)
 
 # sum losses
-discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real + gradient_penalty
+discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real*MISCL_WEIGHT + gradient_penalty
 
 # ---------------------------------- Optimizers ----------------------------------- #
 generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
