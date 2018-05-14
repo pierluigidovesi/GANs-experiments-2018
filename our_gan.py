@@ -37,6 +37,8 @@ def generate_images(images, epoch):
 		plt.subplot(1,10,i+1)
 		plt.axis("off")
 		plt.imshow(new_image)
+		plt.axis("off")
+	plt.axis("off")
 	plt.savefig("epoch_"+str(epoch)+".png")
 
 
