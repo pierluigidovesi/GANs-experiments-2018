@@ -220,7 +220,8 @@ with tf.Session() as session:
 
 		# MACRO BATCHES FOR
 		for i in range(num_macro_batches):  # macro batches
-			print("macro_batch: ", i, end=' ')
+			print(".", end="")
+			#print("macro_batch: ", i)
 			discriminator_macro_batches = X_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			labels_macro_batches = y_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			noise_macro_batches = np.random.rand(macro_batches_size, latent_dim)
@@ -254,4 +255,18 @@ with tf.Session() as session:
 			                          feed_dict={input_generator: generator_labels_with_noise,
 			                                     labels: fake_labels_onehot})
 			generator_history.append(gen_cost)
-			
+
+  # SAVE & PRINT LOSSES
+#discriminator_history = np.asarray(discriminator_history)
+gen_line  = plt.plot(generator_history, label="Generator Loss")
+disc_line = plt.plot(discriminator_history, label="Discriminator Loss")
+plt.legend([gen_line, disc_line], ["Generator Loss", "Discriminator Loss"])
+plt.savefig("all_losses.png")
+
+loss_file = open('gen_loss.txt', 'w')
+for item in generator_history:
+    loss_file.write("%s\n" % item)
+
+loss_file = open('disc_loss.txt', 'w')
+for item in discriminator_history:
+    loss_file.write("%s\n" % item)
