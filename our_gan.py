@@ -274,17 +274,16 @@ with tf.Session() as session:
 			                                              generator_noise), axis=1)
 			gen_cost, _ = session.run([generator_loss,
 			                           generator_optimizer],
-			                          feed_dict={input_generator: generator_labels_with_noise,
+			                           feed_dict={input_generator: generator_labels_with_noise,
 			                                     labels: fake_labels_onehot})
 			generator_history.append(gen_cost)
+			# END FOR MACRO BATCHES
 
-			test_noise = np.random.rand(10, latent_dim)
-			sorted_labels = np.eye(10)
-			sorted_labels_with_noise = np.concatenate((sorted_labels,
-			                                           test_noise), axis=1)
-		# END FOR MACRO BATCHES
-		generated_img = session.run([test_samples],
-		                            feed_dict={test_input: sorted_labels_with_noise})
+		test_noise = np.random.rand(10, latent_dim)
+		sorted_labels = np.eye(10)
+		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
+
+		generated_img = session.run([test_samples], feed_dict={test_input: sorted_labels_with_noise})
 
 		generate_images(generated_img, iteration)
 		print(" time: ", time.time() - start_time)
@@ -306,3 +305,5 @@ with tf.Session() as session:
 				loss_file.write("%s\n" % item)
 
 		# END FOR EPOCHS
+	# END SESSION
+
