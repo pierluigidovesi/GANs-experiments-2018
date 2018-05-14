@@ -66,7 +66,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		# ----- Layer5, deConv, Batch, Leaky ----- #
 		output = layers.conv2d_transpose(output, filters=1, kernel_size=(5, 5), strides=1, padding='same')
-		output = tf.nn.sigmoid(output)
+		output = tf.nn.tanh(output)
 
 		output = tf.reshape(output, [-1, OUTPUT_DIM])
 		print('Generator output size:')
@@ -191,6 +191,7 @@ discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
+X_train = (X_train-127.5)/127.5
 
 y_train = np.concatenate((y_train, y_test), axis=0)
 y_hot = np.zeros((y_train.shape[0], 10))
@@ -206,33 +207,51 @@ with tf.Session() as session:
 	# big batch size
 	macro_batches_size = BATCH_SIZE * disc_iters
 	# num of batches
-	num_batches = int((X_train.shape[0]) // macro_batches_size)
+	num_macro_batches = int((X_train.shape[0]) // macro_batches_size)
+	discriminator_history = []
+	generator_history = []
 
 	# EPOCHS FOR
 	for iteration in range(num_epochs):
+		print("epoch: ", iteration)
 		np.random.shuffle(indices)
 		X_train = X_train[indices]
 		y_train = y_train[indices]
-		if iteration > 0:
-			pass
 
 		# MACRO BATCHES FOR
-		for i in range(num_batches):  # macro batches
+		for i in range(num_macro_batches):  # macro batches
+			print("macro_batch: ", i, end=' ')
 			discriminator_macro_batches = X_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			labels_macro_batches = y_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			noise_macro_batches = np.random.rand(macro_batches_size, latent_dim)
+			disc_cost_sum = 0
 
 			# (MICRO) BATCHES FOR
 			for j in range(disc_iters):  # batches
+				#print("micro batches: ", j)
+				# DISCRIMINATOR TRAINING
 				img_samples = discriminator_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
 				img_labels = labels_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
 				noise = noise_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
 
-				# data preprocessing
-				labels_with_noise = np.concatenate((img_labels, noise), axis=0)
-				print(generator_input.shape)
-				disc_cost, _ = session.run([disc_loss,
+				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
+				disc_cost, _ = session.run([discriminator_loss,
 				                            discriminator_optimizer],
-				                           feed_dict={input_generator: labels_with_noise,
-				                                      real_samples: img_samples,
-				                                      labels: img_labels})
+				                            feed_dict={input_generator: discriminator_labels_with_noise,
+				                                       real_samples: img_samples,
+				                                       labels: img_labels})
+				disc_cost_sum += disc_cost
+				discriminator_history.append(np.mean(disc_cost_sum))
+			# GENERATOR TRAINING
+			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
+			fake_labels = np.random.randint(low= 0, high=9, size=[BATCH_SIZE,])
+			fake_labels_onehot = np.zeros((BATCH_SIZE, 10))
+			fake_labels_onehot[np.arange(BATCH_SIZE), fake_labels] = 1
+			generator_labels_with_noise = np.concatenate((fake_labels_onehot,
+			                                              generator_noise), axis=1)
+			gen_cost, _ = session.run([generator_loss,
+			                          generator_optimizer],
+			                          feed_dict={input_generator: generator_labels_with_noise,
+			                                     labels: fake_labels_onehot})
+			generator_history.append(gen_cost)
+			
