@@ -13,7 +13,7 @@ from tensorflow import layers
 from keras.datasets import mnist
 import time
 
-num_epochs = 5
+num_epochs = 1
 
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
@@ -29,14 +29,14 @@ channel_first = False
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
-	plt.figure()
+	#plt.figure()
+	plt.figure(figsize=(100, 10))
 	test_image_stack = np.squeeze((np.array(images, dtype = np.float32)* 127.5) + 127.5)
 	for i in range(10):
-		plt.axis("off")
 		new_image = test_image_stack[i].reshape(28,28)
 		plt.subplot(1,10,i+1)
-		plt.imshow(new_image)
 		plt.axis("off")
+		plt.imshow(new_image)
 	plt.savefig("epoch_"+str(epoch)+".png")
 
 
