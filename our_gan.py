@@ -29,7 +29,6 @@ channel_first = False
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
-	print(tf.shape(images))
 	test_image_stack = (np.array(images, dtype = np.float32)* 127.5) + 127.5
 	print(test_image_stack.shape)
 	for i in range(10):
