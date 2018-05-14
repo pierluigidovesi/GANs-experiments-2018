@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import sklearn.datasets
 from tensorflow import layers
 from keras.datasets import mnist
-from tqdm import tqdm
+import time
 
 num_epochs = 5
 
@@ -29,6 +29,7 @@ channel_first = False
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
+	plt.figure()
 	test_image_stack = np.squeeze((np.array(images, dtype = np.float32)* 127.5) + 127.5)
 	for i in range(10):
 		plt.axis("off")
@@ -231,6 +232,7 @@ with tf.Session() as session:
 
 	# EPOCHS FOR
 	for iteration in range(num_epochs):
+		start_time = time.time()
 		print("epoch: ", iteration)
 		np.random.shuffle(indices)
 		X_train = X_train[indices]
@@ -259,6 +261,7 @@ with tf.Session() as session:
 				                                      real_samples: img_samples,
 				                                      labels: img_labels})
 				disc_cost_sum += disc_cost
+				# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
 			# GENERATOR TRAINING
 			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
@@ -277,13 +280,17 @@ with tf.Session() as session:
 			sorted_labels = np.eye(10)
 			sorted_labels_with_noise = np.concatenate((sorted_labels,
 			                                           test_noise), axis=1)
+			# END FOR MACRO BATCHES
 		generated_img = session.run([test_samples],
 			                            feed_dict={test_input: sorted_labels_with_noise})
 
 		generate_images(generated_img, iteration)
+		print(" time: "time.time()-start_time)
+	# END FOR EPOCHS
 
 # SAVE & PRINT LOSSES
 # discriminator_history = np.asarray(discriminator_history)
+plt.figure()
 gen_line = plt.plot(generator_history, label="Generator Loss")
 disc_line = plt.plot(discriminator_history, label="Discriminator Loss")
 plt.legend([gen_line, disc_line], ["Generator Loss", "Discriminator Loss"])
