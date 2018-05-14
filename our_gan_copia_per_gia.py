@@ -193,7 +193,7 @@ differences = fake_samples - real_samples
 interpolates = real_samples + alpha * differences
 gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
 slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-gradient_penalty = tf.reduce_mean((slopes - 0.85) ** 2)
+gradient_penalty = tf.reduce_mean((slopes - 0.9) ** 2)
 
 # sum losses
 discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real*MISCL_WEIGHT + gradient_penalty
