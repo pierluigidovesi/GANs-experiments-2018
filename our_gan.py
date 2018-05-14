@@ -30,11 +30,12 @@ def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
 	test_image_stack = np.squeeze((np.array(images, dtype = np.float32)* 127.5) + 127.5)
-	print(test_image_stack.shape)
 	for i in range(10):
+		plt.axis("off")
 		new_image = test_image_stack[i].reshape(28,28)
 		plt.subplot(1,10,i+1)
 		plt.imshow(new_image)
+		plt.axis("off")
 	plt.savefig("epoch_"+str(epoch)+".png")
 
 
@@ -276,10 +277,10 @@ with tf.Session() as session:
 			sorted_labels = np.eye(10)
 			sorted_labels_with_noise = np.concatenate((sorted_labels,
 			                                           test_noise), axis=1)
-			generated_img = session.run([test_samples],
+		generated_img = session.run([test_samples],
 			                            feed_dict={test_input: sorted_labels_with_noise})
 
-			generate_images(generated_img, iteration)
+		generate_images(generated_img, iteration)
 
 # SAVE & PRINT LOSSES
 # discriminator_history = np.asarray(discriminator_history)
