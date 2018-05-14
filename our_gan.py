@@ -33,7 +33,7 @@ def generate_images(images, epoch):
 	print(test_image_stack.shape)
 	for i in range(10):
 		new_image = test_image_stack[i].reshape(28,28)
-		plt.subplot(1,10,i)
+		plt.subplot(1,10,i+1)
 		plt.imshow(new_image)
 	plt.savefig("epoch_"+str(epoch)+".png")
 
