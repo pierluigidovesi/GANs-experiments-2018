@@ -16,8 +16,20 @@
       <file leaf-file-name="our_gan_many_gpu.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="176" column="56" selection-start-line="176" selection-start-column="56" selection-end-line="176" selection-end-column="56" />
+            <state relative-caret-position="276">
+              <caret line="188" column="67" selection-start-line="188" selection-start-column="67" selection-end-line="188" selection-end-column="67" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="gan_64x64.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="102">
+              <caret line="519" column="21" selection-start-line="519" selection-start-column="12" selection-end-line="519" selection-end-column="21" />
+              <folding>
+                <element signature="e#10#24#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -75,7 +87,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../improved_wgan_training/tflib/small_imagenet.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -218,8 +230,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="176" column="56" selection-start-line="176" selection-start-column="56" selection-end-line="176" selection-end-column="56" />
+        <state relative-caret-position="276">
+          <caret line="188" column="67" selection-start-line="188" selection-start-column="67" selection-end-line="188" selection-end-column="67" />
         </state>
       </provider>
     </entry>

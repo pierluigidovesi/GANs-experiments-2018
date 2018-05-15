@@ -186,7 +186,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# DISCRIMINATOR
 			# ------ Real Samples(D) ------ #
 			#real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
-			real_samples = one_device_real_data
+			real_samples = tf.cast(one_device_real_data, tf.float32)
 
 			# -------- Labels(D) ---------- #
 			labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
