@@ -150,17 +150,20 @@ test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
 
 # DISCRIMINATOR
 # ------ Real Samples(D) ------ #
+
 real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 
 # -------- Labels(D) ---------- #
 labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
 # ----------------------------------- Outputs ----------------------------------- #
-fake_samples = generator(BATCH_SIZE, input_generator)
+with tf.device('/gpu:0'):
+	fake_samples = generator(BATCH_SIZE, input_generator)
 test_samples = generator(10, test_input, reuse=True)
-
-disc_real_score, disc_real_labels = discriminator(real_samples)
-disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
+with tf.device('/gpu:1'):
+	disc_real_score, disc_real_labels = discriminator(real_samples)
+with tf.device('/gpu:0'):
+	disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
 # Trainable variables
 d_vars, g_vars = get_trainable_variables()
@@ -170,18 +173,21 @@ d_vars, g_vars = get_trainable_variables()
 # ----- Gen Loss ----- #
 
 # wasserstein
-gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
+with tf.device('/cpu:0'):
+	gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
 
 # labels
 with tf.device('/cpu:0'):
 	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 								       logits=disc_fake_labels)
-generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
+with tf.device('/gpu:0'):
+	generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
 
 # ----- Disc Loss ----- #
 
 # wasserstein
-disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
+with tf.device('/gpu:0'):
+	disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
 
 # labels
 with tf.device('/cpu:0'):
@@ -203,14 +209,14 @@ gradient_penalty = tf.reduce_mean((slopes - 0.9) ** 2)
 discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real*MISCL_WEIGHT + gradient_penalty
 
 # ---------------------------------- Optimizers ----------------------------------- #
-with tf.device('/gpu:0'):
-	generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
-						     beta1=0.5,
-						     beta2=0.9).minimize(generator_loss, var_list=g_vars)
-with tf.device('/gpu:1'):
-	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
-							 beta1=0.5,
-							 beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
+
+generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
+					     beta1=0.5,
+					     beta2=0.9).minimize(generator_loss, var_list=g_vars)
+
+discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
+						 beta1=0.5,
+						 beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
 
 # -------------------------------- Load Dataset ---------------------------------- #
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
