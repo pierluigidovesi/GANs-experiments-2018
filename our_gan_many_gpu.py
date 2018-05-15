@@ -174,7 +174,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		# choose what GPU
 		with tf.device(device):
-			BATCH_SIZE = BATCH_SIZE / len(DEVICES)
+			BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
 
 			# --------------------------------- Placeholders ------------------------------- #
 
@@ -249,7 +249,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# with tf.Session() as session:
 
 	# restore BATCH_SIZE
-	BATCH_SIZE = BATCH_SIZE*len(DEVICES)
+	BATCH_SIZE = int(BATCH_SIZE*len(DEVICES))
 
 	# run session
 	session.run(tf.global_variables_initializer())
