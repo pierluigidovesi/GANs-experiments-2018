@@ -249,6 +249,9 @@ with tf.Session() as session:
 			noise_macro_batches = np.random.rand(macro_batches_size, latent_dim)
 			disc_cost_sum = 0
 
+			if i%(num_macro_batches//10):
+				print(10*i//num_macro_batches, '%')
+
 			# (MICRO) BATCHES FOR
 			for j in range(disc_iters):  # batches
 				# print("micro batches: ", j)
