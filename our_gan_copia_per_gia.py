@@ -13,12 +13,12 @@ from tensorflow import layers
 from keras.datasets import mnist
 import time
 
-num_epochs = 200
+num_epochs = 140
 
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 9  # As per the paper
-MISCL_WEIGHT = 1.2
+MISCL_WEIGHT = 1.4
 OUTPUT_DIM = 784
 disc_iters = 5
 num_labels = 10
@@ -197,7 +197,8 @@ gradient_penalty = tf.reduce_mean((slopes - 0.9) ** 2)
 
 # sum losses
 discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real*MISCL_WEIGHT + gradient_penalty
-
+discriminator_accuracy = tf.metrics.accuracy(labels=tf.argmax(labels,1),
+					     predictions=tf.argmax(disc_real_labels[1:]) 
 # ---------------------------------- Optimizers ----------------------------------- #
 generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
                                              beta1=0.5,
@@ -232,6 +233,7 @@ with tf.Session() as session:
 	num_macro_batches = int((X_train.shape[0]) // macro_batches_size)
 	discriminator_history = []
 	generator_history = []
+	disc_accuracy = []				     
 
 	# EPOCHS FOR
 	for iteration in range(num_epochs):
@@ -278,6 +280,11 @@ with tf.Session() as session:
 			                           feed_dict={input_generator: generator_labels_with_noise,
 			                                     labels: fake_labels_onehot})
 			generator_history.append(gen_cost)
+			disc_acc = session.run([discriminator_accuracy],
+					       feed_dict={input_generator: discriminator_labels_with_noise,
+				                                      real_samples: img_samples,
+				                                      labels: img_labels})
+			disc_accuracy.append(disc_acc)
 			# END FOR MACRO BATCHES
 
 		test_noise = np.random.rand(10, latent_dim)
@@ -306,5 +313,10 @@ with tf.Session() as session:
 				loss_file.write("%s\n" % item)
 
 		# END FOR EPOCHS
+	try:				     
+		plt.figure()
+		plt.plot(disc_accuracy)
+		plt.savefig("discriminator_accuracy.png")
+		
 	# END SESSION
 
