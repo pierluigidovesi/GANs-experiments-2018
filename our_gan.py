@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 import sklearn.datasets
 from tensorflow import layers
 from keras.datasets import mnist
+from keras.datasets import fashion_mnist
 import time
+
 
 num_epochs = 100
 
@@ -208,7 +210,8 @@ discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
                                                  beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
 
 # -------------------------------- Load Dataset ---------------------------------- #
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
+#(X_train, y_train), (X_test, y_test) = mnist.load_data()
+(X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
 
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
