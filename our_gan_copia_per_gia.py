@@ -317,6 +317,7 @@ with tf.Session() as session:
 		plt.figure()
 		plt.plot(disc_accuracy)
 		plt.savefig("discriminator_accuracy.png")
-		
+	except:
+		pass				     
 	# END SESSION
 
