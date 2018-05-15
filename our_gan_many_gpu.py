@@ -165,16 +165,18 @@ y_train = y_hot
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
-	all_real_data = tf.placeholder(tf.int32, shape=[BATCH_SIZE, OUTPUT_DIM])
+	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
+	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
+	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
 
 	generator_loss_list = []
 	discriminator_loss_list = []
 
 	BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
 
-	for device_index, (device, one_device_real_data) in enumerate(zip(DEVICES, binder_real_data)):
+	for device_index, (device, one_device_real_data, one_device_real_labels) in enumerate(zip(DEVICES, binder_real_data, binder_real_labels)):
 		# device_index is easy incremental int
 		# device = DEVICE[i]
 		# real_data_conv = split_real_data_conv[i]
@@ -198,8 +200,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			real_samples = tf.cast(one_device_real_data, tf.float32)
 
 			# -------- Labels(D) ---------- #
-			labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
-
+			#labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
+			labels = one_device_real_labels
+			
 			# ----------------------------------- Outputs ----------------------------------- #
 			fake_samples = generator(BATCH_SIZE, input_generator, reuse=True)
 			test_samples = generator(10, test_input, reuse=True)
