@@ -157,13 +157,12 @@ real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
 # ----------------------------------- Outputs ----------------------------------- #
-with tf.device('/gpu:0'):
-	fake_samples = generator(BATCH_SIZE, input_generator)
-test_samples = generator(10, test_input, reuse=True)
 with tf.device('/gpu:1'):
-	disc_real_score, disc_real_labels = discriminator(real_samples)
-with tf.device('/gpu:0'):
-	disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
+	fake_samples = generator(BATCH_SIZE, input_generator)
+
+test_samples = generator(10, test_input, reuse=True)
+disc_real_score, disc_real_labels = discriminator(real_samples)
+disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
 # Trainable variables
 d_vars, g_vars = get_trainable_variables()
@@ -180,20 +179,20 @@ with tf.device('/cpu:0'):
 with tf.device('/cpu:0'):
 	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 								       logits=disc_fake_labels)
-with tf.device('/gpu:0'):
-	generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
+
+generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
 
 # ----- Disc Loss ----- #
 
 # wasserstein
-with tf.device('/gpu:0'):
-	disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
+
+disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
 
 # labels
-with tf.device('/cpu:0'):
+with tf.device('/gpu:1'):
 	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 								       logits=disc_fake_labels)
-with tf.device('/cpu:0'):
+with tf.device('/gpu:1'):
 	labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 								      logits=disc_real_labels)
 
