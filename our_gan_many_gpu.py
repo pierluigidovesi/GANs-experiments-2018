@@ -15,7 +15,6 @@ from keras.datasets import fashion_mnist
 
 num_epochs = 30
 
-N_GPUS = 1  # Number of GPUs
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
@@ -27,8 +26,10 @@ DIM = 64
 channel_first = False
 
 # LIST OF NUMBER OF GPUs
-DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPUS)]
-
+try:
+	DEVICES = ['/gpu:{}'.format(i) for i in range(2)]
+except:
+	pass
 
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
@@ -280,7 +281,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			disc_cost_sum = 0
 
 			if i % (num_macro_batches // 10) == 0:
-				print(100 * (i + 1) // num_macro_batches, '%')
+				print(100*i // num_macro_batches, '%')
 
 			# (MICRO) BATCHES FOR
 			for j in range(disc_iters):  # batches
