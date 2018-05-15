@@ -142,6 +142,7 @@ def get_trainable_variables():
 	g_vars = [var for var in tvars if 'Generator' in var.name]
 	return d_vars, g_vars
 
+
 # -------------------------------- Load Dataset ---------------------------------- #
 # (X_train, y_train), (X_test, y_test) = mnist.load_data()
 (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
@@ -241,24 +242,25 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                                 beta1=0.5,
 			                                                 beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
 
-
-
-	# ------------------------------------ Train ------------------------------------- #
+	# ------------------------------------ Train ---------------------------------------------- #
 	# with tf.Session() as session:
+
+	# run session
 	session.run(tf.global_variables_initializer())
 	indices = np.arange(X_train.shape[0])
 
 	# big batch size
 	macro_batches_size = BATCH_SIZE * disc_iters
+
 	# num of batches
 	num_macro_batches = int((X_train.shape[0]) // macro_batches_size)
 	discriminator_history = []
 	generator_history = []
 
 	# EPOCHS FOR
-	for iteration in range(num_epochs):
+	for epoch in range(num_epochs):
 		start_time = time.time()
-		print("epoch: ", iteration)
+		print("epoch: ", epoch)
 		np.random.shuffle(indices)
 		X_train = X_train[indices]
 		y_train = y_train[indices]
@@ -311,10 +313,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		generated_img = session.run([test_samples], feed_dict={test_input: sorted_labels_with_noise})
 
-		generate_images(generated_img, iteration)
+		generate_images(generated_img, epoch)
 		print(" time: ", time.time() - start_time)
 
-		if iteration % 10 == 0 or iteration == (num_epochs - 1):
+		if epoch % 10 == 0 or epoch == (num_epochs - 1):
 			# SAVE & PRINT LOSSES
 			plt.figure()
 			gen_line = plt.plot(generator_history)  # , label="Generator Loss")
@@ -330,5 +332,5 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			for item in discriminator_history:
 				loss_file.write("%s\n" % item)
 
-	# END FOR EPOCHS
+		# END FOR EPOCHS
 # END SESSION

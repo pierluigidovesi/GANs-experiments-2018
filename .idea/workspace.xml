@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e3a64395-5331-4b77-9ada-ec9da5089073" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/our_gan_many_gpu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/our_gan.py" beforeDir="false" afterPath="$PROJECT_DIR$/our_gan.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -13,11 +15,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="our_gan.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/our_gan.py">
+      <file leaf-file-name="our_gan_many_gpu.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="289">
-              <caret line="17" column="14" selection-start-line="17" selection-start-column="14" selection-end-line="17" selection-end-column="14" />
+            <state relative-caret-position="323">
+              <caret line="170" column="50" selection-start-line="170" selection-start-column="50" selection-end-line="170" selection-end-column="50" />
             </state>
           </provider>
         </entry>
@@ -25,9 +27,37 @@
       <file leaf-file-name="gan_64x64.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="385">
-              <caret line="512" column="31" selection-start-line="512" selection-start-column="30" selection-end-line="512" selection-end-column="31" />
+            <state relative-caret-position="459">
+              <caret line="708" column="16" lean-forward="true" selection-start-line="708" selection-start-column="16" selection-end-line="708" selection-end-column="16" />
+              <folding>
+                <element signature="e#10#24#0" expanded="true" />
+              </folding>
             </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="small_imagenet.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../improved_wgan_training/tflib/small_imagenet.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="385">
+              <caret line="32" column="24" lean-forward="true" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="train.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/train.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="119">
+              <caret line="189" column="9" selection-start-line="189" selection-start-column="9" selection-end-line="189" selection-end-column="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="networks.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/networks.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-5004" />
           </provider>
         </entry>
       </file>
@@ -35,7 +65,12 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
+      <find>DEVICES</find>
+      <find>small_imagenet</find>
       <find>mn</find>
+      <find>imagenet</find>
+      <find>iteration</find>
+      <find>epoch</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -45,6 +80,8 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/our_gan.py" />
+        <option value="$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py" />
+        <option value="$PROJECT_DIR$/our_gan_many_gpu.py" />
       </list>
     </option>
   </component>
@@ -74,7 +111,12 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../improved_wgan_training/tflib/small_imagenet.py" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Pier\PycharmProjects\our_gan" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -103,7 +145,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-6" y="-6" width="1293" height="693" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14399363" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -135,17 +176,53 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py">
+    <entry file="file://$USER_HOME$/.PyCharmCE2018.1/system/python_stubs/-313451744/time.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="385">
-          <caret line="512" column="31" selection-start-line="512" selection-start-column="30" selection-end-line="512" selection-end-column="31" />
+        <state relative-caret-position="170">
+          <caret line="228" column="4" selection-start-line="228" selection-start-column="4" selection-end-line="228" selection-end-column="4" />
         </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="189" column="9" selection-start-line="189" selection-start-column="9" selection-end-line="189" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/networks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-5004" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/our_gan.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="14" selection-start-line="17" selection-start-column="14" selection-end-line="17" selection-end-column="14" />
+        <state relative-caret-position="103">
+          <caret line="247" column="8" lean-forward="true" selection-start-line="247" selection-start-column="8" selection-end-line="247" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../improved_wgan_training/tflib/small_imagenet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="385">
+          <caret line="32" column="24" lean-forward="true" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="459">
+          <caret line="708" column="16" lean-forward="true" selection-start-line="708" selection-start-column="16" selection-end-line="708" selection-end-column="16" />
+          <folding>
+            <element signature="e#10#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="170" column="50" selection-start-line="170" selection-start-column="50" selection-end-line="170" selection-end-column="50" />
         </state>
       </provider>
     </entry>
