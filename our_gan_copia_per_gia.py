@@ -17,7 +17,7 @@ num_epochs = 140
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 9  # As per the paper
-MISCL_WEIGHT = 1.4
+MISCL_WEIGHT = 1.6
 OUTPUT_DIM = 784
 disc_iters = 5
 num_labels = 10
@@ -264,12 +264,6 @@ with tf.Session() as session:
 				                           feed_dict={input_generator: discriminator_labels_with_noise,
 				                                      real_samples: img_samples,
 				                                      labels: img_labels})
-				disc_acc = session.run([discriminator_accuracy],
-					       feed_dict={input_generator: discriminator_labels_with_noise,
-				                                      real_samples: img_samples,
-				                                      labels: img_labels})
-				disc_accuracy.append(disc_acc)
-			
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
@@ -313,11 +307,6 @@ with tf.Session() as session:
 				loss_file.write("%s\n" % item)
 
 		# END FOR EPOCHS
-	try:				     
-		plt.figure()
-		plt.plot(disc_accuracy)
-		plt.savefig("discriminator_accuracy.png")
-	except:
-		pass				     
+		     
 	# END SESSION
 
