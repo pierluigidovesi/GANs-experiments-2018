@@ -53,7 +53,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
-	with tf.variable_scope('Generator', reuse=reuse):  # Needed for later, in order to get variables of discriminator
+	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
 		alpha = 0.01
 		output = layers.dense(inputs=noise_with_labels, units=4 * 4 * 4 * 64)
@@ -103,7 +103,7 @@ def discriminator(images, reuse=None):
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
     """
-	with tf.variable_scope('Discriminator', reuse=reuse):  # Needed for later, in order to get variables of generator
+	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of generator
 		if channel_first:
 			output = tf.reshape(images, [-1, 1, 28, 28])
 		else:
