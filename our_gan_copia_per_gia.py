@@ -173,7 +173,7 @@ d_vars, g_vars = get_trainable_variables()
 gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
 
 # labels
-with tf.device('/cpu:4'):
+with tf.device('/cpu:0'):
 	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 								       logits=disc_fake_labels)
 generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
@@ -184,10 +184,10 @@ generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
 disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
 
 # labels
-with tf.device('/cpu:5'):
+with tf.device('/cpu:0'):
 	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 								       logits=disc_fake_labels)
-with tf.device('/cpu:6'):
+with tf.device('/cpu:0'):
 	labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 								      logits=disc_real_labels)
 
