@@ -48,48 +48,48 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
-	with tf.device('/gpu:1'):
-		with tf.variable_scope('Generator', reuse=reuse):  # Needed for later, in order to get variables of discriminator
-			# ----- Layer1, Dense, Batch, Leaky ----- #
-			alpha = 0.01
-			output = layers.dense(inputs=noise_with_labels, units=4 * 4 * 4 * 64)
-			output = layers.batch_normalization(output)
-			output = tf.maximum(alpha * output, output)
-			if channel_first:
-				# size: 128 x 7 x 7
-				output = tf.reshape(output, (-1, 4 * 64, 4, 4))
-				bn_axis = 1  # [0, 2, 3]  # first
-			else:
-				# size: 7 x 7 x 128
-				output = tf.reshape(output, (-1, 4, 4, 4 * 64))
-				bn_axis = -1  # [0, 1, 2]  # last
+	
+	with tf.variable_scope('Generator', reuse=reuse):  # Needed for later, in order to get variables of discriminator
+		# ----- Layer1, Dense, Batch, Leaky ----- #
+		alpha = 0.01
+		output = layers.dense(inputs=noise_with_labels, units=4 * 4 * 4 * 64)
+		output = layers.batch_normalization(output)
+		output = tf.maximum(alpha * output, output)
+		if channel_first:
+			# size: 128 x 7 x 7
+			output = tf.reshape(output, (-1, 4 * 64, 4, 4))
+			bn_axis = 1  # [0, 2, 3]  # first
+		else:
+			# size: 7 x 7 x 128
+			output = tf.reshape(output, (-1, 4, 4, 4 * 64))
+			bn_axis = -1  # [0, 1, 2]  # last
 
-			# ----- Layer2, deConv, Batch, Leaky ----- #
-			output = layers.conv2d_transpose(output, filters=4 * DIM, kernel_size=(5, 5), strides=2, padding='same')
-			output = layers.batch_normalization(output, axis=bn_axis)
-			output = tf.maximum(alpha * output, output)
-			if channel_first:
-				output = output[:, :, :7, :7]
-			else:
-				output = output[:, :7, :7, :]
+		# ----- Layer2, deConv, Batch, Leaky ----- #
+		output = layers.conv2d_transpose(output, filters=4 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = layers.batch_normalization(output, axis=bn_axis)
+		output = tf.maximum(alpha * output, output)
+		if channel_first:
+			output = output[:, :, :7, :7]
+		else:
+			output = output[:, :7, :7, :]
 
-			# ----- Layer3, deConv, Batch, Leaky ----- #
-			output = layers.conv2d_transpose(output, filters=2 * DIM, kernel_size=(5, 5), strides=2, padding='same')
-			output = layers.batch_normalization(output, axis=bn_axis)
-			output = tf.maximum(alpha * output, output)
+		# ----- Layer3, deConv, Batch, Leaky ----- #
+		output = layers.conv2d_transpose(output, filters=2 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = layers.batch_normalization(output, axis=bn_axis)
+		output = tf.maximum(alpha * output, output)
 
-			# ----- Layer4, deConv, Batch, Leaky ----- #
-			output = layers.conv2d_transpose(output, filters=DIM, kernel_size=(5, 5), strides=2, padding='same')
-			output = layers.batch_normalization(output, axis=bn_axis)
-			output = tf.maximum(alpha * output, output)
+		# ----- Layer4, deConv, Batch, Leaky ----- #
+		output = layers.conv2d_transpose(output, filters=DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = layers.batch_normalization(output, axis=bn_axis)
+		output = tf.maximum(alpha * output, output)
 
-			# ----- Layer5, deConv, Batch, Leaky ----- #
-			output = layers.conv2d_transpose(output, filters=1, kernel_size=(5, 5), strides=1, padding='same')
-			output = tf.nn.tanh(output)
+		# ----- Layer5, deConv, Batch, Leaky ----- #
+		output = layers.conv2d_transpose(output, filters=1, kernel_size=(5, 5), strides=1, padding='same')
+		output = tf.nn.tanh(output)
 
-			output = tf.reshape(output, [-1, OUTPUT_DIM])
-			print('Generator output size:')
-			print(output)
+		output = tf.reshape(output, [-1, OUTPUT_DIM])
+		print('Generator output size:')
+		print(output)
 
 	return output
 
@@ -99,32 +99,32 @@ def discriminator(images, reuse=None):
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
     """
-	with tf.device('/gpu:0'):
-		with tf.variable_scope('Discriminator', reuse=reuse):  # Needed for later, in order to get variables of generator
-			if channel_first:
-				output = tf.reshape(images, [-1, 1, 28, 28])
-			else:
-				output = tf.reshape(images, [-1, 28, 28, 1])
+	
+	with tf.variable_scope('Discriminator', reuse=reuse):  # Needed for later, in order to get variables of generator
+		if channel_first:
+			output = tf.reshape(images, [-1, 1, 28, 28])
+		else:
+			output = tf.reshape(images, [-1, 28, 28, 1])
 
-			# ----- Layer1, Conv, Leaky ----- #
-			alpha = 0.01
-			output = layers.conv2d(output, filters=DIM, kernel_size=(5, 5), strides=2, padding='same')
-			output = tf.maximum(alpha * output, output)
+		# ----- Layer1, Conv, Leaky ----- #
+		alpha = 0.01
+		output = layers.conv2d(output, filters=DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = tf.maximum(alpha * output, output)
 
-			# ----- Layer2, Conv, Leaky ----- #
-			output = layers.conv2d(output, filters=2 * DIM, kernel_size=(5, 5), strides=2, padding='same')
-			output = tf.maximum(alpha * output, output)
+		# ----- Layer2, Conv, Leaky ----- #
+		output = layers.conv2d(output, filters=2 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = tf.maximum(alpha * output, output)
 
-			# ----- Layer3, Conv, Leaky ----- #
-			output = layers.conv2d(output, filters=4 * DIM, kernel_size=(5, 5), strides=2, padding='same')
-			output = tf.maximum(alpha * output, output)
-			output = tf.reshape(output, [-1, 4 * 4 * 4 * DIM])
+		# ----- Layer3, Conv, Leaky ----- #
+		output = layers.conv2d(output, filters=4 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = tf.maximum(alpha * output, output)
+		output = tf.reshape(output, [-1, 4 * 4 * 4 * DIM])
 
-			# ----- Layer4, Dense, Linear ----- #
-			output = layers.dense(output, units=11)
+		# ----- Layer4, Dense, Linear ----- #
+		output = layers.dense(output, units=11)
 
-			print('Discriminator output size:')
-			print(output)
+		print('Discriminator output size:')
+		print(output)
 
 	scores_out = tf.identity(output[:, :1], name='scores_out')
 	labels_out = tf.identity(output[:, 1:], name='labels_out')
@@ -173,8 +173,9 @@ d_vars, g_vars = get_trainable_variables()
 gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
 
 # labels
-labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-                                                               logits=disc_fake_labels)
+with tf.device('/cpu:4'):
+	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+								       logits=disc_fake_labels)
 generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
 
 # ----- Disc Loss ----- #
@@ -183,10 +184,12 @@ generator_loss = gen_wasserstein_loss+ labels_penalty_fakes*MISCL_WEIGHT
 disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
 
 # labels
-labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-                                                               logits=disc_fake_labels)
-labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-                                                              logits=disc_real_labels)
+with tf.device('/cpu:5'):
+	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+								       logits=disc_fake_labels)
+with tf.device('/cpu:6'):
+	labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+								      logits=disc_real_labels)
 
 # gradient penalty
 alpha = tf.random_uniform(shape=[BATCH_SIZE, 1], minval=0., maxval=1.)
@@ -200,13 +203,14 @@ gradient_penalty = tf.reduce_mean((slopes - 0.9) ** 2)
 discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real*MISCL_WEIGHT + gradient_penalty
 
 # ---------------------------------- Optimizers ----------------------------------- #
-generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
-                                             beta1=0.5,
-                                             beta2=0.9).minimize(generator_loss, var_list=g_vars)
-
-discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
-                                                 beta1=0.5,
-                                                 beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
+with tf.device('/gpu:0'):
+	generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
+						     beta1=0.5,
+						     beta2=0.9).minimize(generator_loss, var_list=g_vars)
+with tf.device('/gpu:1'):
+	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
+							 beta1=0.5,
+							 beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
 
 # -------------------------------- Load Dataset ---------------------------------- #
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -223,7 +227,7 @@ y_hot[b, y_train] = 1
 y_train = y_hot
 
 # ------------------------------------ Train ------------------------------------- #
-with tf.Session() as session:
+with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as session:
 	session.run(tf.global_variables_initializer())
 	indices = np.arange(X_train.shape[0])
 
