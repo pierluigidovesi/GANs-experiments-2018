@@ -165,6 +165,9 @@ y_train = y_hot
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
+	test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
+	test_samples = generator(10, test_input, reuse=True)
+
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
@@ -192,7 +195,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# GENERATOR
 			# ----- Noise + Labels(G) ----- #
 			input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
-			test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
+
 
 			# DISCRIMINATOR
 			# ------ Real Samples(D) ------ #
@@ -202,10 +205,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# -------- Labels(D) ---------- #
 			#labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 			labels = one_device_real_labels
-			
+
 			# ----------------------------------- Outputs ----------------------------------- #
 			fake_samples = generator(BATCH_SIZE, input_generator, reuse=True)
-			test_samples = generator(10, test_input, reuse=True)
 
 			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
@@ -315,7 +317,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                            discriminator_optimizer],
 				                           feed_dict={input_generator: discriminator_labels_with_noise,
 				                                      all_real_data: img_samples,
-				                                      labels: img_labels})
+				                                      all_real_labels: img_labels})
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
@@ -329,7 +331,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			gen_cost, _ = session.run([generator_loss,
 			                           generator_optimizer],
 			                          feed_dict={input_generator: generator_labels_with_noise,
-			                                     labels: fake_labels_onehot})
+			                                     all_real_labels: fake_labels_onehot})
 			generator_history.append(gen_cost)
 		# END FOR MACRO BATCHES
 
