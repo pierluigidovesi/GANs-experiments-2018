@@ -193,10 +193,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
 			# ----------------------------------- Outputs ----------------------------------- #
-			fake_samples = generator(BATCH_SIZE, input_generator)
+			fake_samples = generator(BATCH_SIZE, input_generator, reuse=True)
 			test_samples = generator(10, test_input, reuse=True)
 
-			disc_real_score, disc_real_labels = discriminator(real_samples)
+			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
 			# Trainable variables
