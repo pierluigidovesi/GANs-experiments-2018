@@ -168,6 +168,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
 
+	generator_loss_list = []
+	discriminator_loss_list = []
+
 	for device_index, (device, one_device_real_data) in enumerate(zip(DEVICES, binder_real_data)):
 		# device_index is easy incremental int
 		# device = DEVICE[i]
@@ -201,52 +204,60 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
-			# Trainable variables
-			d_vars, g_vars = get_trainable_variables()
 
-	# ---------------------------------- Losses ------------------------------------ #
+			# ---------------------------------- Losses ------------------------------------ #
 
-	# ----- Gen Loss ----- #
+			# ----- Gen Loss ----- #
 
-	# wasserstein
-	gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
+			# wasserstein
+			gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
 
-	# labels
-	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-	                                                               logits=disc_fake_labels)
-	generator_loss = gen_wasserstein_loss + labels_penalty_fakes
+			# labels
+			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+			                                                               logits=disc_fake_labels)
+			generator_loss = gen_wasserstein_loss + labels_penalty_fakes
 
-	# ----- Disc Loss ----- #
+			# ----- Disc Loss ----- #
 
-	# wasserstein
-	disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
+			# wasserstein
+			disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
 
-	# labels
-	labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-	                                                               logits=disc_fake_labels)
-	labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-	                                                              logits=disc_real_labels)
+			# labels
+			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+			                                                               logits=disc_fake_labels)
+			labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+			                                                              logits=disc_real_labels)
 
-	# gradient penalty
-	alpha = tf.random_uniform(shape=[BATCH_SIZE, 1], minval=0., maxval=1.)
-	differences = fake_samples - all_real_data
-	interpolates = all_real_data + alpha * differences
-	gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
-	slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-	gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
+			# gradient penalty
+			alpha = tf.random_uniform(shape=[BATCH_SIZE, 1], minval=0., maxval=1.)
+			differences = fake_samples - all_real_data
+			interpolates = all_real_data + alpha * differences
+			gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
+			slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
+			gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
 
-	# sum losses
-	fake_labels_weight = 0.1
-	discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes + labels_penalty_real + gradient_penalty
+			# sum losses
+			fake_labels_weight = 0.1
+			discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes + labels_penalty_real + gradient_penalty
 
+			generator_loss_list.append(generator_loss)
+			discriminator_loss_list.append(discriminator_loss)
+	# end gpu iter
+
+	# Trainable variables
+	d_vars, g_vars = get_trainable_variables()
+
+	# get total average cost of total BATCH
+	generator_loss_list = tf.add_n(generator_loss_list) / len(DEVICES)
+	discriminator_loss_list = tf.add_n(discriminator_loss_list) / len(DEVICES)
 	# ---------------------------------- Optimizers ----------------------------------- #
 	generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
 	                                             beta1=0.5,
-	                                             beta2=0.9).minimize(generator_loss, var_list=g_vars)
+	                                             beta2=0.9).minimize(generator_loss_list, var_list=g_vars)
 
 	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
 	                                                 beta1=0.5,
-	                                                 beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
+	                                                 beta2=0.9).minimize(discriminator_loss_list, var_list=d_vars)
 
 	# ------------------------------------ Train ---------------------------------------------- #
 	# with tf.Session() as session:
