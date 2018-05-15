@@ -8,14 +8,12 @@ import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-# import sklearn.datasets
 from tensorflow import layers
 from keras.datasets import mnist
 from keras.datasets import fashion_mnist
 
-num_epochs = 30
+num_epochs = 200
 
-N_GPUS = 1  # Number of GPUs
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
@@ -25,9 +23,6 @@ num_labels = 10
 latent_dim = 128
 DIM = 64
 channel_first = False
-
-# LIST OF NUMBER OF GPUs
-DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPUS)]
 
 
 def generate_images(images, epoch):
@@ -142,6 +137,75 @@ def get_trainable_variables():
 	g_vars = [var for var in tvars if 'Generator' in var.name]
 	return d_vars, g_vars
 
+
+# --------------------------------- Placeholders ------------------------------- #
+
+# GENERATOR
+# ----- Noise + Labels(G) ----- #
+input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
+test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
+
+# DISCRIMINATOR
+# ------ Real Samples(D) ------ #
+real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
+
+# -------- Labels(D) ---------- #
+labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
+
+# ----------------------------------- Outputs ----------------------------------- #
+fake_samples = generator(BATCH_SIZE, input_generator)
+test_samples = generator(10, test_input, reuse=True)
+
+disc_real_score, disc_real_labels = discriminator(real_samples)
+disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
+
+# Trainable variables
+d_vars, g_vars = get_trainable_variables()
+
+# ---------------------------------- Losses ------------------------------------ #
+
+# - - - - - Gen Loss - - - - - #
+
+# wasserstein gen
+gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
+
+# labels gen
+labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+                                                               logits=disc_fake_labels)
+generator_loss = gen_wasserstein_loss + labels_penalty_fakes
+
+# - - - - - Disc Loss - - - - - #
+
+# wasserstein disc
+disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
+
+# labels disc
+labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+                                                               logits=disc_fake_labels)
+labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+                                                              logits=disc_real_labels)
+
+# gradient penalty disc
+alpha = tf.random_uniform(shape=[BATCH_SIZE, 1], minval=0., maxval=1.)
+differences = fake_samples - real_samples
+interpolates = real_samples + alpha * differences
+gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
+slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
+gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
+
+# sum losses
+fake_labels_weight = 0.1
+discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes + labels_penalty_real + gradient_penalty
+
+# ---------------------------------- Optimizers ----------------------------------- #
+generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
+                                             beta1=0.5,
+                                             beta2=0.9).minimize(generator_loss, var_list=g_vars)
+
+discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
+                                                 beta1=0.5,
+                                                 beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
+
 # -------------------------------- Load Dataset ---------------------------------- #
 # (X_train, y_train), (X_test, y_test) = mnist.load_data()
 (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
@@ -157,94 +221,8 @@ b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
 y_train = y_hot
 
-# TENSORFLOW SESSION
-with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
-	# create placeholder for RGB images 64x64 in batch = BATCH_SIZE
-	all_real_data = tf.placeholder(tf.int32, shape=[BATCH_SIZE, OUTPUT_DIM])
-
-	binder_real_data = tf.split(all_real_data, len(DEVICES))
-
-	for device_index, (device, real_data) in enumerate(zip(DEVICES, binder_real_data)):
-		# device_index is easy incremental int
-		# device = DEVICE[i]
-		# real_data_conv = split_real_data_conv[i]
-
-		# choose what GPU
-		with tf.device(device):
-			BATCH_SIZE = BATCH_SIZE / len(DEVICES)
-
-			# --------------------------------- Placeholders ------------------------------- #
-
-			# GENERATOR
-			# ----- Noise + Labels(G) ----- #
-			input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
-			test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
-
-			# DISCRIMINATOR
-			# ------ Real Samples(D) ------ #
-			real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
-
-			# -------- Labels(D) ---------- #
-			labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
-
-			# ----------------------------------- Outputs ----------------------------------- #
-			fake_samples = generator(BATCH_SIZE, input_generator)
-			test_samples = generator(10, test_input, reuse=True)
-
-			disc_real_score, disc_real_labels = discriminator(real_samples)
-			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
-
-			# Trainable variables
-			d_vars, g_vars = get_trainable_variables()
-
-			# ---------------------------------- Losses ------------------------------------ #
-
-			# ----- Gen Loss ----- #
-
-			# wasserstein
-			gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
-
-			# labels
-			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-			                                                               logits=disc_fake_labels)
-			generator_loss = gen_wasserstein_loss + labels_penalty_fakes
-
-			# ----- Disc Loss ----- #
-
-			# wasserstein
-			disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
-
-			# labels
-			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-			                                                               logits=disc_fake_labels)
-			labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-			                                                              logits=disc_real_labels)
-
-			# gradient penalty
-			alpha = tf.random_uniform(shape=[BATCH_SIZE, 1], minval=0., maxval=1.)
-			differences = fake_samples - real_samples
-			interpolates = real_samples + alpha * differences
-			gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
-			slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-			gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
-
-			# sum losses
-			fake_labels_weight = 0.1
-			discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes + labels_penalty_real + gradient_penalty
-
-			# ---------------------------------- Optimizers ----------------------------------- #
-			generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
-			                                             beta1=0.5,
-			                                             beta2=0.9).minimize(generator_loss, var_list=g_vars)
-
-			discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
-			                                                 beta1=0.5,
-			                                                 beta2=0.9).minimize(discriminator_loss, var_list=d_vars)
-
-
-
-	# ------------------------------------ Train ------------------------------------- #
-	# with tf.Session() as session:
+# ------------------------------------ Train ------------------------------------- #
+with tf.Session() as session:
 	session.run(tf.global_variables_initializer())
 	indices = np.arange(X_train.shape[0])
 
@@ -272,7 +250,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			disc_cost_sum = 0
 
 			if i % (num_macro_batches // 10) == 0:
-				print(100 * (i + 1) // num_macro_batches, '%')
+				# print progress
+				print(100 * i // num_macro_batches, '%')
 
 			# (MICRO) BATCHES FOR
 			for j in range(disc_iters):  # batches
@@ -290,7 +269,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                                      labels: img_labels})
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
+
 			discriminator_history.append(np.mean(disc_cost_sum))
+
 			# GENERATOR TRAINING
 			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
 			fake_labels = np.random.randint(low=0, high=9, size=[BATCH_SIZE, ])
@@ -305,17 +286,19 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			generator_history.append(gen_cost)
 		# END FOR MACRO BATCHES
 
+		# test samples
 		test_noise = np.random.rand(10, latent_dim)
 		sorted_labels = np.eye(10)
 		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
-
 		generated_img = session.run([test_samples], feed_dict={test_input: sorted_labels_with_noise})
-
+		# plot samples
 		generate_images(generated_img, iteration)
+
+		# time
 		print(" time: ", time.time() - start_time)
 
+		# save and plot losses
 		if iteration % 10 == 0 or iteration == (num_epochs - 1):
-			# SAVE & PRINT LOSSES
 			plt.figure()
 			gen_line = plt.plot(generator_history)  # , label="Generator Loss")
 			disc_line = plt.plot(discriminator_history)  # , label="Discriminator Loss")
@@ -330,5 +313,5 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			for item in discriminator_history:
 				loss_file.write("%s\n" % item)
 
-	# END FOR EPOCHS
+# END FOR EPOCHS
 # END SESSION
