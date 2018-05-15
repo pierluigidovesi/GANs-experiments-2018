@@ -2,9 +2,40 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e3a64395-5331-4b77-9ada-ec9da5089073" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/our_gan_many_gpu.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/our_gan.py" beforeDir="false" afterPath="$PROJECT_DIR$/our_gan.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/all_losses.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/disc_loss.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_0.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_1.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_10.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_11.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_12.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_13.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_14.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_15.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_17.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_18.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_19.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_2.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_20.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_21.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_22.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_23.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_24.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_25.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_26.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_27.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_28.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_29.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_3.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_4.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_5.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_6.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_7.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_8.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/epoch_9.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gen_loss.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/our_gan_many_gpu.py" beforeDir="false" afterPath="$PROJECT_DIR$/our_gan_many_gpu.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -18,46 +49,9 @@
       <file leaf-file-name="our_gan_many_gpu.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="170" column="50" selection-start-line="170" selection-start-column="50" selection-end-line="170" selection-end-column="50" />
+            <state relative-caret-position="-1917">
+              <caret line="197" column="46" selection-start-line="197" selection-start-column="46" selection-end-line="197" selection-end-column="46" />
             </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="gan_64x64.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="459">
-              <caret line="708" column="16" lean-forward="true" selection-start-line="708" selection-start-column="16" selection-end-line="708" selection-end-column="16" />
-              <folding>
-                <element signature="e#10#24#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="small_imagenet.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../improved_wgan_training/tflib/small_imagenet.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="385">
-              <caret line="32" column="24" lean-forward="true" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="train.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/train.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="189" column="9" selection-start-line="189" selection-start-column="9" selection-end-line="189" selection-end-column="9" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="networks.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/networks.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-5004" />
           </provider>
         </entry>
       </file>
@@ -71,6 +65,9 @@
       <find>imagenet</find>
       <find>iteration</find>
       <find>epoch</find>
+      <find>all_real_data_conv</find>
+      <find>real_data</find>
+      <find>real_samples</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -96,7 +93,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -108,6 +104,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -145,30 +142,65 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-6" y="-6" width="1293" height="693" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14399363" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14399363" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32897195" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
+      <window_info anchor="bottom" id="Run" order="2" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2890">
+          <caret line="170" column="50" selection-start-line="170" selection-start-column="50" selection-end-line="170" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="12036">
+          <caret line="708" column="16" lean-forward="true" selection-start-line="708" selection-start-column="16" selection-end-line="708" selection-end-column="16" />
+          <folding>
+            <element signature="e#10#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../improved_wgan_training/tflib/small_imagenet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="544">
+          <caret line="32" column="24" lean-forward="true" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3213">
+          <caret line="189" column="9" selection-start-line="189" selection-start-column="9" selection-end-line="189" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/networks.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/our_gan.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4386">
@@ -185,15 +217,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/train.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
+        <state relative-caret-position="3077">
           <caret line="189" column="9" selection-start-line="189" selection-start-column="9" selection-end-line="189" selection-end-column="9" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../progressive_growing_of_gans/networks.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-5004" />
-      </provider>
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/our_gan.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -204,15 +234,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../improved_wgan_training/tflib/small_imagenet.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="385">
-          <caret line="32" column="24" lean-forward="true" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
+        <state relative-caret-position="510">
+          <caret line="32" column="24" selection-start-line="32" selection-start-column="24" selection-end-line="32" selection-end-column="24" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="459">
-          <caret line="708" column="16" lean-forward="true" selection-start-line="708" selection-start-column="16" selection-end-line="708" selection-end-column="16" />
+        <state relative-caret-position="102">
+          <caret line="519" column="21" selection-start-line="519" selection-start-column="12" selection-end-line="519" selection-end-column="21" />
           <folding>
             <element signature="e#10#24#0" expanded="true" />
           </folding>
@@ -221,8 +251,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="170" column="50" selection-start-line="170" selection-start-column="50" selection-end-line="170" selection-end-column="50" />
+        <state relative-caret-position="-1917">
+          <caret line="197" column="46" selection-start-line="197" selection-start-column="46" selection-end-line="197" selection-end-column="46" />
         </state>
       </provider>
     </entry>

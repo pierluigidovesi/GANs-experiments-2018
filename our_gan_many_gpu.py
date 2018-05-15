@@ -144,7 +144,9 @@ def get_trainable_variables():
 
 
 # -------------------------------- Load Dataset ---------------------------------- #
+# MINST
 # (X_train, y_train), (X_test, y_test) = mnist.load_data()
+# FASHION MNIST
 (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
 
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
@@ -160,12 +162,12 @@ y_train = y_hot
 
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
-	# create placeholder for RGB images 64x64 in batch = BATCH_SIZE
+
 	all_real_data = tf.placeholder(tf.int32, shape=[BATCH_SIZE, OUTPUT_DIM])
 
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
 
-	for device_index, (device, real_data) in enumerate(zip(DEVICES, binder_real_data)):
+	for device_index, (device, one_device_real_data) in enumerate(zip(DEVICES, binder_real_data)):
 		# device_index is easy incremental int
 		# device = DEVICE[i]
 		# real_data_conv = split_real_data_conv[i]
@@ -183,7 +185,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# DISCRIMINATOR
 			# ------ Real Samples(D) ------ #
-			real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
+			#real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
+			real_samples = one_device_real_data
 
 			# -------- Labels(D) ---------- #
 			labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
@@ -245,6 +248,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# ------------------------------------ Train ---------------------------------------------- #
 	# with tf.Session() as session:
 
+	# restore BATCH_SIZE
+	BATCH_SIZE = BATCH_SIZE*len(DEVICES)
+
 	# run session
 	session.run(tf.global_variables_initializer())
 	indices = np.arange(X_train.shape[0])
@@ -288,7 +294,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				disc_cost, _ = session.run([discriminator_loss,
 				                            discriminator_optimizer],
 				                           feed_dict={input_generator: discriminator_labels_with_noise,
-				                                      real_samples: img_samples,
+				                                      all_real_data: img_samples,
 				                                      labels: img_labels})
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
