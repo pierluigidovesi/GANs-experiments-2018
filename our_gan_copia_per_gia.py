@@ -198,7 +198,7 @@ gradient_penalty = tf.reduce_mean((slopes - 0.9) ** 2)
 # sum losses
 discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real*MISCL_WEIGHT + gradient_penalty
 discriminator_accuracy = tf.metrics.accuracy(labels=tf.argmax(labels,1),
-					     predictions=tf.argmax(disc_real_labels[1:]) 
+					     predictions=tf.argmax(disc_real_labels[1:])) 
 # ---------------------------------- Optimizers ----------------------------------- #
 generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
                                              beta1=0.5,
