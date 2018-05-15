@@ -160,6 +160,8 @@ b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
 y_train = y_hot
 
+# ------------------------------------------------------------------------------ #
+
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
@@ -170,6 +172,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	generator_loss_list = []
 	discriminator_loss_list = []
 
+	BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
+
 	for device_index, (device, one_device_real_data) in enumerate(zip(DEVICES, binder_real_data)):
 		# device_index is easy incremental int
 		# device = DEVICE[i]
@@ -179,7 +183,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		# choose what GPU
 		with tf.device(device):
-			BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
+
 
 			# --------------------------------- Placeholders ------------------------------- #
 
