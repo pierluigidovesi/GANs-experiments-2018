@@ -26,10 +26,9 @@ DIM = 64
 channel_first = False
 
 # LIST OF NUMBER OF GPUs
-try:
-	DEVICES = ['/gpu:{}'.format(i) for i in range(2)]
-except:
-	pass
+
+DEVICES = ['/gpu:{}'.format(i) for i in range(2)]
+
 
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
@@ -230,8 +229,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# gradient penalty
 			alpha = tf.random_uniform(shape=[BATCH_SIZE, 1], minval=0., maxval=1.)
-			differences = fake_samples - all_real_data
-			interpolates = all_real_data + alpha * differences
+			differences = fake_samples - real_samples
+			interpolates = real_samples + alpha * differences
 			gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
 			slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
 			gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
