@@ -48,7 +48,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
-	with tf.device('/gpu:0'):
+	with tf.device('/gpu:1'):
 		with tf.variable_scope('Generator', reuse=reuse):  # Needed for later, in order to get variables of discriminator
 			# ----- Layer1, Dense, Batch, Leaky ----- #
 			alpha = 0.01
