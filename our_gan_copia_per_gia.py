@@ -1,4 +1,4 @@
-import os, sys
+	import os, sys
 
 sys.path.append(os.getcwd())
 import numpy as np
@@ -265,6 +265,12 @@ with tf.Session() as session:
 				                           feed_dict={input_generator: discriminator_labels_with_noise,
 				                                      real_samples: img_samples,
 				                                      labels: img_labels})
+				disc_acc = session.run([discriminator_accuracy],
+					       feed_dict={input_generator: discriminator_labels_with_noise,
+				                                      real_samples: img_samples,
+				                                      labels: img_labels})
+				disc_accuracy.append(disc_acc)
+			
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
@@ -280,11 +286,6 @@ with tf.Session() as session:
 			                           feed_dict={input_generator: generator_labels_with_noise,
 			                                     labels: fake_labels_onehot})
 			generator_history.append(gen_cost)
-			disc_acc = session.run([discriminator_accuracy],
-					       feed_dict={input_generator: discriminator_labels_with_noise,
-				                                      real_samples: img_samples,
-				                                      labels: img_labels})
-			disc_accuracy.append(disc_acc)
 			# END FOR MACRO BATCHES
 
 		test_noise = np.random.rand(10, latent_dim)
