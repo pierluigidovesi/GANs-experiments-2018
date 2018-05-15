@@ -13,7 +13,7 @@ from tensorflow import layers
 from keras.datasets import mnist
 import time
 
-num_epochs = 20
+num_epochs = 100
 
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
@@ -195,7 +195,8 @@ slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
 gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
 
 # sum losses
-discriminator_loss = disc_wasserstein_loss + labels_penalty_fakes + labels_penalty_real + gradient_penalty
+fake_labels_weight = 0.1
+discriminator_loss = disc_wasserstein_loss + fake_labels_weight*labels_penalty_fakes + labels_penalty_real + gradient_penalty
 
 # ---------------------------------- Optimizers ----------------------------------- #
 generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
