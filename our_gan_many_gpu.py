@@ -173,6 +173,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# device = DEVICE[i]
 		# real_data_conv = split_real_data_conv[i]
 
+		print(device_index)
+
 		# choose what GPU
 		with tf.device(device):
 			BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
