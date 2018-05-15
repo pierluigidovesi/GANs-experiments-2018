@@ -15,7 +15,7 @@ from keras.datasets import fashion_mnist
 import time
 
 
-num_epochs = 10
+num_epochs = 30
 
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
@@ -252,8 +252,8 @@ with tf.Session() as session:
 			noise_macro_batches = np.random.rand(macro_batches_size, latent_dim)
 			disc_cost_sum = 0
 
-			if i%(num_macro_batches//10):
-				print(10*i//num_macro_batches, '%')
+			if i%(num_macro_batches//10)==0:
+				print(100*i//num_macro_batches, '%')
 
 			# (MICRO) BATCHES FOR
 			for j in range(disc_iters):  # batches
