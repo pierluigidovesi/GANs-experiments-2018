@@ -321,6 +321,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
+
 			# GENERATOR TRAINING
 			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
 			fake_labels = np.random.randint(low=0, high=9, size=[BATCH_SIZE, ])
