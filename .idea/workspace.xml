@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e3a64395-5331-4b77-9ada-ec9da5089073" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/our_gan_many_gpu.py" beforeDir="false" afterPath="$PROJECT_DIR$/our_gan_many_gpu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mnist_our_gan_many_gpu.py" beforeDir="false" afterPath="$PROJECT_DIR$/mnist_our_gan_many_gpu.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -13,20 +13,20 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="our_gan_many_gpu.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="our_gan_many_gpu.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="408">
+            <state relative-caret-position="510">
               <caret line="30" column="19" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mnist_our_gan_many_gpu.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="mnist_our_gan_many_gpu.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/mnist_our_gan_many_gpu.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2907">
-              <caret line="345" column="73" selection-start-line="345" selection-start-column="63" selection-end-line="345" selection-end-column="73" />
+            <state relative-caret-position="238">
+              <caret line="29" column="47" selection-start-line="29" selection-start-column="47" selection-end-line="29" selection-end-column="47" />
             </state>
           </provider>
         </entry>
@@ -75,8 +75,8 @@
       <list>
         <option value="$PROJECT_DIR$/../improved_wgan_training/gan_64x64.py" />
         <option value="$PROJECT_DIR$/our_gan.py" />
-        <option value="$PROJECT_DIR$/mnist_our_gan_many_gpu.py" />
         <option value="$PROJECT_DIR$/our_gan_many_gpu.py" />
+        <option value="$PROJECT_DIR$/mnist_our_gan_many_gpu.py" />
       </list>
     </option>
   </component>
@@ -317,17 +317,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mnist_our_gan_many_gpu.py">
+    <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2907">
-          <caret line="345" column="73" selection-start-line="345" selection-start-column="63" selection-end-line="345" selection-end-column="73" />
+        <state relative-caret-position="510">
+          <caret line="30" column="19" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
+    <entry file="file://$PROJECT_DIR$/mnist_our_gan_many_gpu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="408">
-          <caret line="30" column="19" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
+        <state relative-caret-position="238">
+          <caret line="29" column="47" selection-start-line="29" selection-start-column="47" selection-end-line="29" selection-end-column="47" />
         </state>
       </provider>
     </entry>

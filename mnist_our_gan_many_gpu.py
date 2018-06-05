@@ -27,7 +27,7 @@ channel_first = False
 
 # LIST OF NUMBER OF GPUs
 
-DEVICES = ['/gpu:{}'.format(i) for i in range(2)]
+DEVICES = ['/gpu:{}'.format(i) for i in range(1)]
 
 
 def generate_images(images, epoch):
@@ -166,6 +166,7 @@ y_train = y_hot
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
+	print('------------GENERATOR: Test samples ----------------')
 	test_samples = generator(10, test_input, reuse=True)
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
@@ -210,9 +211,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			labels = one_device_real_labels
 
 			# ----------------------------------- Outputs ----------------------------------- #
+			print('------------GENERATOR: Fake samples ----------------')
 			fake_samples = generator(BATCH_SIZE, input_generator, reuse=True)
 
+			print('------------DISCRIMINATOR: Real samples ----------------')
 			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
+			print('------------DISCRIMINATOR: Fake samples ----------------')
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
 
