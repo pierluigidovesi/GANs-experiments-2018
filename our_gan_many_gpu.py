@@ -136,6 +136,8 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			                       strides=strides, padding='same')
 			print('Output at iteration: ', i)
 			print(output)
+			print('ALpha')
+			print(alpha)
 			print('alpha*output')
 			print(alpha * output)
 			output = tf.maximum(alpha * output, output)
