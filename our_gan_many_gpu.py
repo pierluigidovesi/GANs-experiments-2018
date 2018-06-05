@@ -63,8 +63,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
-	n_conv_layer = int(np.log2(resolution_image/size_init))-1
-	n_filters = int(2**(n_conv_layer-2))
+	n_conv_layer = int(np.log2(resolution_image/size_init))
+	n_filters = int(2**(n_conv_layer-1))
 	print('n-filters gen')
 	print(n_filters)
 	print('n-conv gen')
@@ -113,7 +113,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
     """
-	n_conv_layer = int(np.log2(resolution_image/size_init))-1
+	n_conv_layer = int(np.log2(resolution_image/size_init))
 	n_filters = 1
 	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of generator
 		if channel_first:
