@@ -34,7 +34,7 @@ channel_first = False
 kernel_size = (5, 5)
 strides = 2
 size_init = 4
-alpha = 0.01 # leaky constant
+leakage = 0.01 # leaky constant
 
 # LIST OF NUMBER OF GPUs
 N_GPU = 1
@@ -73,7 +73,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		# ----- Layer1, Dense, Batch, Leaky ----- #
 		output = layers.dense(inputs=noise_with_labels, units=channels*(size_init * size_init) * (n_filters * DIM))
 		output = layers.batch_normalization(output)
-		output = tf.maximum(alpha * output, output)
+		output = tf.maximum(leakage * output, output)
 
 		print('units dense generator: ', channels*(size_init * size_init) * (n_filters * DIM))
 		print(output)
@@ -94,7 +94,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			output = layers.conv2d_transpose(output, filters=n_filters * DIM * channels, kernel_size=kernel_size,
 			                                 strides=strides, padding='same')
 			output = layers.batch_normalization(output, axis=bn_axis)
-			output = tf.maximum(alpha * output, output)
+			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters/2)
 			print('iter G: ', i, ' - n filters: ', n_filters * DIM * channels)
 			print(output)
@@ -137,10 +137,10 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			print('Output at iteration: ', i)
 			print(output)
 			print('ALpha')
-			print(alpha)
+			print(leakage)
 			print('alpha*output')
-			print(alpha * output)
-			output = tf.maximum(alpha * output, output)
+			print(leakage * output)
+			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters*2)
 			print('n_filters in D: ',n_filters)
 
