@@ -64,13 +64,20 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :return:                  generated images
     """
 	n_conv_layer = int(np.log2(resolution_image/size_init))-1
-	n_filters = int(2**(n_conv_layer-2)*DIM)
+	n_filters = int(2**(n_conv_layer-2))
+	print('n-filters gen')
+	print(n_filters)
+	print('n-conv gen')
+	print(n_conv_layer)
+
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
 		output = layers.dense(inputs=noise_with_labels, units=channels*(size_init * size_init) * (n_filters * DIM))
 		output = layers.batch_normalization(output)
 		output = tf.maximum(alpha * output, output)
 		print(output)
+		print('n dense units')
+		print(channels*(size_init * size_init) * (n_filters * DIM))
 		if channel_first:
 			# size: 128 x 7 x 7
 			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
