@@ -65,10 +65,9 @@ def generator(n_samples, noise_with_labels, reuse=None):
     """
 	n_conv_layer = int(np.log2(resolution_image/size_init))
 	n_filters = int(2**(n_conv_layer-1))
-	print('n-filters gen')
-	print(n_filters)
-	print('n-conv gen')
-	print(n_conv_layer)
+
+	print('n-filters gen ', n_filters)
+	print('n-conv gen ', n_conv_layer)
 
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
@@ -76,10 +75,13 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		output = layers.batch_normalization(output)
 		output = tf.maximum(alpha * output, output)
 
+		print('units dense generator: ', channels*(size_init * size_init) * (n_filters * DIM))
+
 		if channel_first:
 			# size: 128 x 7 x 7
 			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
+			print('channel first YES - ', n_filters * DIM * channels, ', ', size_init, ', ', size_init)
 		else:
 			# size: 7 x 7 x 128
 			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
@@ -89,6 +91,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		for i in range(n_conv_layer):
 			output = layers.conv2d_transpose(output, filters=n_filters * DIM * channels, kernel_size=kernel_size,
 			                                 strides=strides, padding='same')
+			print('iter G: ', i, ' - n filters: ', n_filters * DIM * channels)
 			output = layers.batch_normalization(output, axis=bn_axis)
 			output = tf.maximum(alpha * output, output)
 			n_filters = int(n_filters/2)
@@ -97,6 +100,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		# ----- LastLayer, deConv, Batch, Leaky ----- #
 		output = layers.conv2d_transpose(output, filters=1 * channels, kernel_size=kernel_size,
 		                                 strides=1, padding='same')
+
+		print('n filters layer G out: ', channels)
 		output = tf.nn.tanh(output)
 		output = tf.reshape(output, [-1, OUTPUT_DIM])
 
