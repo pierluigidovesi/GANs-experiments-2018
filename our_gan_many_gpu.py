@@ -75,9 +75,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		output = layers.dense(inputs=noise_with_labels, units=channels*(size_init * size_init) * (n_filters * DIM))
 		output = layers.batch_normalization(output)
 		output = tf.maximum(alpha * output, output)
-		print(output)
-		print('n dense units')
-		print(channels*(size_init * size_init) * (n_filters * DIM))
+
 		if channel_first:
 			# size: 128 x 7 x 7
 			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
@@ -90,7 +88,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
 		for i in range(n_conv_layer):
 			output = layers.conv2d_transpose(output, filters=n_filters * DIM * channels, kernel_size=kernel_size,
-			                                 strides=1, padding='same')
+			                                 strides=strides, padding='same')
 			output = layers.batch_normalization(output, axis=bn_axis)
 			output = tf.maximum(alpha * output, output)
 			n_filters = int(n_filters/2)
@@ -127,6 +125,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			                       strides=strides, padding='same')
 			output = tf.maximum(alpha * output, output)
 			n_filters = int(n_filters*2)
+			print('n_filters in D: ',n_filters)
 
 		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters/2) * DIM)])
 
@@ -335,7 +334,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# GENERATOR TRAINING
 			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
-			fake_labels = np.random.randint(low=0, high=9, size=[BATCH_SIZE, ])
+			fake_labels = np.random.randint(low=0, high=num_labels-1, size=[BATCH_SIZE, ])
 			fake_labels_onehot = np.zeros((BATCH_SIZE, 10))
 			fake_labels_onehot[np.arange(BATCH_SIZE), fake_labels] = 1
 			generator_labels_with_noise = np.concatenate((fake_labels_onehot,
@@ -347,8 +346,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			generator_history.append(gen_cost)
 		# END FOR MACRO BATCHES
 
-		test_noise = np.random.rand(10, latent_dim)
-		sorted_labels = np.eye(10)
+		test_noise = np.random.rand(num_labels, latent_dim)
+		sorted_labels = np.eye(num_labels)
 		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
 
 		generated_img = session.run([test_samples], feed_dict={test_input: sorted_labels_with_noise})
