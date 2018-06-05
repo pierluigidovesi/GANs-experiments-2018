@@ -170,7 +170,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
-
+	print("ALL REAL LABELS")
+	print(all_real_labels)
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
 	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
 
