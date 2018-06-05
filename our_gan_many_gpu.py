@@ -168,18 +168,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
 	test_samples = generator(10, test_input, reuse=True)
 
+	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
 	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
+	binder_input_generator = tf.split(all_input_generator, len(DEVICES))
 
 	generator_loss_list = []
 	discriminator_loss_list = []
 
 	BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
 
-	for device_index, (device, one_device_real_data, one_device_real_labels) in enumerate(zip(DEVICES, binder_real_data, binder_real_labels)):
+	for device_index, (device, one_device_real_data, one_device_real_labels, one_device_input_generator) in enumerate(zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
 		# device_index is easy incremental int
 		# device = DEVICE[i]
 		# real_data_conv = split_real_data_conv[i]
@@ -194,8 +196,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# GENERATOR
 			# ----- Noise + Labels(G) ----- #
-			input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
-
+			#input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
+			input_generator = one_device_input_generator
 
 			# DISCRIMINATOR
 			# ------ Real Samples(D) ------ #
