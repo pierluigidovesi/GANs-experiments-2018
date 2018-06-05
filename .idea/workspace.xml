@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e3a64395-5331-4b77-9ada-ec9da5089073" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/mnist_our_gan_many_gpu.py" beforeDir="false" afterPath="$PROJECT_DIR$/mnist_our_gan_many_gpu.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/our_gan_many_gpu.py" beforeDir="false" afterPath="$PROJECT_DIR$/our_gan_many_gpu.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -17,8 +16,8 @@
       <file leaf-file-name="our_gan_many_gpu.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1462">
-              <caret line="233" column="71" lean-forward="true" selection-start-line="233" selection-start-column="12" selection-end-line="233" selection-end-column="71" />
+            <state relative-caret-position="391">
+              <caret line="137" column="25" lean-forward="true" selection-start-line="137" selection-start-column="25" selection-end-line="137" selection-end-column="25" />
             </state>
           </provider>
         </entry>
@@ -309,8 +308,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1462">
-          <caret line="233" column="71" lean-forward="true" selection-start-line="233" selection-start-column="12" selection-end-line="233" selection-end-column="71" />
+        <state relative-caret-position="391">
+          <caret line="137" column="25" lean-forward="true" selection-start-line="137" selection-start-column="25" selection-end-line="137" selection-end-column="25" />
         </state>
       </provider>
     </entry>

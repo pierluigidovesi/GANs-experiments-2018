@@ -121,15 +121,21 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 	n_conv_layer = int(np.log2(resolution_image/size_init))
 	n_filters = 1
 	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of generator
+		print('Input for discriminator')
+		print(images)
 		if channel_first:
 			output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
 		else:
 			output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
+		print('Input for discriminator, Reshaped')
+		print(images)
 
 		# ----- LoopLayers, Conv, Leaky ----- #
 		for i in range(n_conv_layer):
 			output = layers.conv2d(output, filters=n_filters*DIM, kernel_size=kernel_size,
 			                       strides=strides, padding='same')
+			print('Output at iteration: ', i)
+			print(output)
 			output = tf.maximum(alpha * output, output)
 			n_filters = int(n_filters*2)
 			print('n_filters in D: ',n_filters)
@@ -186,8 +192,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
-	print("ALL REAL LABELS")
-	print(all_real_labels)
+	#print("ALL REAL LABELS")
+	#print(all_real_labels)
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
 	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
 	binder_input_generator = tf.split(all_input_generator, len(DEVICES))
@@ -213,7 +219,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# GENERATOR
 			# ----- Noise + Labels(G) ----- #
 			#input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
-			print('------------- G: INPUT GENERATOR -----------------')
 			input_generator = one_device_input_generator
 
 			# DISCRIMINATOR
