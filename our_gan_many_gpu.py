@@ -76,12 +76,14 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		output = tf.maximum(alpha * output, output)
 
 		print('units dense generator: ', channels*(size_init * size_init) * (n_filters * DIM))
+		print(output)
 
 		if channel_first:
 			# size: 128 x 7 x 7
 			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
 			print('channel first YES - ', n_filters * DIM * channels, ', ', size_init, ', ', size_init)
+			print(output)
 		else:
 			# size: 7 x 7 x 128
 			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
