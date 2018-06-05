@@ -318,7 +318,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 				disc_cost, _ = session.run([discriminator_loss,
 				                            discriminator_optimizer],
-				                           feed_dict={input_generator: discriminator_labels_with_noise,
+				                           feed_dict={all_input_generator: discriminator_labels_with_noise,
 				                                      all_real_data: img_samples,
 				                                      all_real_labels: img_labels})
 				disc_cost_sum += disc_cost
@@ -334,7 +334,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                              generator_noise), axis=1)
 			gen_cost, _ = session.run([generator_loss,
 			                           generator_optimizer],
-			                          feed_dict={input_generator: generator_labels_with_noise,
+			                          feed_dict={all_input_generator: generator_labels_with_noise,
 			                                     all_real_labels: fake_labels_onehot})
 			generator_history.append(gen_cost)
 		# END FOR MACRO BATCHES
