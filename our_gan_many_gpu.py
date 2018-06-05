@@ -136,6 +136,8 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			                       strides=strides, padding='same')
 			print('Output at iteration: ', i)
 			print(output)
+			print('alpha*output')
+			print(alpha * output)
 			output = tf.maximum(alpha * output, output)
 			n_filters = int(n_filters*2)
 			print('n_filters in D: ',n_filters)
