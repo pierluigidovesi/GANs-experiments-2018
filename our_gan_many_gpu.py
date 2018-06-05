@@ -28,7 +28,7 @@ OUTPUT_DIM = resolution_image**2*channels
 disc_iters = 5
 latent_dim = 128
 DIM = 64
-channel_first = False
+channel_first = True
 
 # CONV Parameters
 kernel_size = (5, 5)
@@ -67,9 +67,10 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	n_filters = 2**(n_conv_layer-2)*DIM
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
-		output = layers.dense(inputs=noise_with_labels, units=(size_init * size_init) * (4 * DIM))
+		output = layers.dense(inputs=noise_with_labels, units=(size_init * size_init) * (n_filters * DIM))
 		output = layers.batch_normalization(output)
 		output = tf.maximum(alpha * output, output)
+		print(output)
 		if channel_first:
 			# size: 128 x 7 x 7
 			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
