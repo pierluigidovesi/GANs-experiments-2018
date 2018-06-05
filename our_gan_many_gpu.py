@@ -28,7 +28,7 @@ OUTPUT_DIM = int(resolution_image**2)*channels
 disc_iters = 5
 latent_dim = 128
 DIM = 64
-channel_first = True
+channel_first = False
 
 # CONV Parameters
 kernel_size = (5, 5)
@@ -180,6 +180,7 @@ y_train = y_hot
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
+	print('------------- G: TEST SAMPLES -----------------')
 	test_samples = generator(num_labels, test_input, reuse=True)
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
@@ -212,6 +213,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# GENERATOR
 			# ----- Noise + Labels(G) ----- #
 			#input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
+			print('------------- G: INPUT GENERATOR -----------------')
 			input_generator = one_device_input_generator
 
 			# DISCRIMINATOR
@@ -224,9 +226,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			labels = one_device_real_labels
 
 			# ----------------------------------- Outputs ----------------------------------- #
+			print('------------- G: FAKE SAMPLES -----------------')
 			fake_samples = generator(BATCH_SIZE, input_generator, reuse=True)
 
+			print('------------- D: DISC REAL SCORE -----------------')
 			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
+			print('------------- D: DISC REAL SCORE -----------------')
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
 
