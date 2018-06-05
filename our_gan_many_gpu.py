@@ -28,7 +28,7 @@ OUTPUT_DIM = int(resolution_image**2)*channels
 disc_iters = 5
 latent_dim = 128
 DIM = 64
-channel_first = False
+channel_first = True
 
 # CONV Parameters
 kernel_size = (5, 5)
@@ -169,7 +169,7 @@ X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
 
 y_train = np.concatenate((y_train, y_test), axis=0)
-y_hot = np.zeros((y_train.shape[0], 10))
+y_hot = np.zeros((y_train.shape[0], num_labels))
 b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
 y_train = y_hot
@@ -179,8 +179,8 @@ y_train = y_hot
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
-	test_input = tf.placeholder(tf.float32, shape=[10, latent_dim + num_labels])
-	test_samples = generator(10, test_input, reuse=True)
+	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
+	test_samples = generator(num_labels, test_input, reuse=True)
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
