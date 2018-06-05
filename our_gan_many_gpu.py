@@ -106,7 +106,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
     """
-	n_conv_layer = n_conv_layer = int(np.log2(resolution_image/size_init))-1
+	n_conv_layer = int(np.log2(resolution_image/size_init))-1
 	n_filters = 1
 	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of generator
 		if channel_first:
@@ -119,7 +119,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			output = layers.conv2d(output, filters=n_filters*DIM, kernel_size=kernel_size,
 			                       strides=strides, padding='same')
 			output = tf.maximum(alpha * output, output)
-			n_filters *= 2
+			n_filters = int(n_filters*2)
 
 		output = tf.reshape(output, [-1, size_init * size_init * (n_filters/2 * DIM)])
 
