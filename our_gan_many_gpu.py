@@ -24,7 +24,7 @@ num_epochs = 30
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
-OUTPUT_DIM = resolution_image**2*channels
+OUTPUT_DIM = int(resolution_image**2)*channels
 disc_iters = 5
 latent_dim = 128
 DIM = 64
@@ -121,7 +121,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			output = tf.maximum(alpha * output, output)
 			n_filters = int(n_filters*2)
 
-		output = tf.reshape(output, [-1, size_init * size_init * (n_filters/2 * DIM)])
+		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters/2) * DIM)])
 
 		# ----- Layer4, Dense, Linear ----- #
 		output = layers.dense(output, units=num_labels+1)
