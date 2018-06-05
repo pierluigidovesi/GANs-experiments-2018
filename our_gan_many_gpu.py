@@ -82,12 +82,11 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
 		for i in range(n_conv_layer):
-			print(type(n_filters * DIM * channels))
 			output = layers.conv2d_transpose(output, filters=n_filters * DIM * channels, kernel_size=kernel_size,
 			                                 strides=1, padding='same')
 			output = layers.batch_normalization(output, axis=bn_axis)
 			output = tf.maximum(alpha * output, output)
-			n_filters /= 2
+			n_filters = int(n_filters/2)
 
 
 		# ----- LastLayer, deConv, Batch, Leaky ----- #
