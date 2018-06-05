@@ -12,33 +12,22 @@ import matplotlib.pyplot as plt
 from tensorflow import layers
 from keras.datasets import mnist
 from keras.datasets import fashion_mnist
-from keras.datasets import cifar10
 
-# dataset settings
-resolution_image = 32
-num_labels = 10
-channels = 3
-
-# architecture
 num_epochs = 30
+
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
-OUTPUT_DIM = resolution_image**2*channels
+OUTPUT_DIM = 784
 disc_iters = 5
+num_labels = 10
 latent_dim = 128
 DIM = 64
 channel_first = False
 
-# CONV Parameters
-kernel_size = (5, 5)
-strides = 2
-size_init = 4
-alpha = 0.01 # leaky constant
-
 # LIST OF NUMBER OF GPUs
-N_GPU = 1
-DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
+
+DEVICES = ['/gpu:{}'.format(i) for i in range(2)]
 
 
 def generate_images(images, epoch):
@@ -47,9 +36,9 @@ def generate_images(images, epoch):
 	# plt.figure()
 	plt.figure(figsize=(100, 10))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
-	for i in range(num_labels):
-		new_image = test_image_stack[i].reshape(resolution_image, resolution_image, channels)
-		plt.subplot(1, num_labels, i + 1)
+	for i in range(10):
+		new_image = test_image_stack[i].reshape(28, 28)
+		plt.subplot(1, 10, i + 1)
 		plt.axis("off")
 		plt.imshow(new_image)
 		plt.axis("off")
@@ -63,67 +52,78 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
-	n_conv_layer = int(np.log2(resolution_image/size_init))-1
-	n_filters = 2**(n_conv_layer-2)*DIM
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
-		output = layers.dense(inputs=noise_with_labels, units=(size_init * size_init) * (4 * DIM))
+		alpha = 0.01
+		output = layers.dense(inputs=noise_with_labels, units=4 * 4 * 4 * 64)
 		output = layers.batch_normalization(output)
 		output = tf.maximum(alpha * output, output)
 		if channel_first:
 			# size: 128 x 7 x 7
-			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
+			output = tf.reshape(output, (-1, 4 * 64, 4, 4))
 			bn_axis = 1  # [0, 2, 3]  # first
 		else:
 			# size: 7 x 7 x 128
-			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
+			output = tf.reshape(output, (-1, 4, 4, 4 * 64))
 			bn_axis = -1  # [0, 1, 2]  # last
 
-		# ----- LoopLayers, deConv, Batch, Leaky ----- #
-		for i in range(n_conv_layer):
-			output = layers.conv2d_transpose(output, filters=n_filters * DIM * channels, kernel_size=kernel_size,
-			                                 strides=1, padding='same')
-			output = layers.batch_normalization(output, axis=bn_axis)
-			output = tf.maximum(alpha * output, output)
-			n_filters /= 2
+		# ----- Layer2, deConv, Batch, Leaky ----- #
+		output = layers.conv2d_transpose(output, filters=4 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = layers.batch_normalization(output, axis=bn_axis)
+		output = tf.maximum(alpha * output, output)
+		if channel_first:
+			output = output[:, :, :7, :7]
+		else:
+			output = output[:, :7, :7, :]
 
+		# ----- Layer3, deConv, Batch, Leaky ----- #
+		output = layers.conv2d_transpose(output, filters=2 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = layers.batch_normalization(output, axis=bn_axis)
+		output = tf.maximum(alpha * output, output)
 
-		# ----- LastLayer, deConv, Batch, Leaky ----- #
-		output = layers.conv2d_transpose(output, filters=1 * channels, kernel_size=kernel_size,
-		                                 strides=1, padding='same')
+		# ----- Layer4, deConv, Batch, Leaky ----- #
+		output = layers.conv2d_transpose(output, filters=DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = layers.batch_normalization(output, axis=bn_axis)
+		output = tf.maximum(alpha * output, output)
+
+		# ----- Layer5, deConv, Batch, Leaky ----- #
+		output = layers.conv2d_transpose(output, filters=1, kernel_size=(5, 5), strides=1, padding='same')
 		output = tf.nn.tanh(output)
-		output = tf.reshape(output, [-1, OUTPUT_DIM])
 
+		output = tf.reshape(output, [-1, OUTPUT_DIM])
 		print('Generator output size:')
 		print(output)
 
 	return output
 
 
-def discriminator(images, reuse=None, n_conv_layer=3):
+def discriminator(images, reuse=None):
 	"""
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
     """
-	n_conv_layer = n_conv_layer = int(np.log2(resolution_image/size_init))-1
-	n_filters = 1
 	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of generator
 		if channel_first:
-			output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
+			output = tf.reshape(images, [-1, 1, 28, 28])
 		else:
-			output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
+			output = tf.reshape(images, [-1, 28, 28, 1])
 
-		# ----- LoopLayers, Conv, Leaky ----- #
-		for i in range(n_conv_layer):
-			output = layers.conv2d(output, filters=n_filters*DIM, kernel_size=kernel_size,
-			                       strides=strides, padding='same')
-			output = tf.maximum(alpha * output, output)
-			n_filters *= 2
+		# ----- Layer1, Conv, Leaky ----- #
+		alpha = 0.01
+		output = layers.conv2d(output, filters=DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = tf.maximum(alpha * output, output)
 
-		output = tf.reshape(output, [-1, size_init * size_init * (n_filters/2 * DIM)])
+		# ----- Layer2, Conv, Leaky ----- #
+		output = layers.conv2d(output, filters=2 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = tf.maximum(alpha * output, output)
+
+		# ----- Layer3, Conv, Leaky ----- #
+		output = layers.conv2d(output, filters=4 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		output = tf.maximum(alpha * output, output)
+		output = tf.reshape(output, [-1, 4 * 4 * 4 * DIM])
 
 		# ----- Layer4, Dense, Linear ----- #
-		output = layers.dense(output, units=num_labels+1)
+		output = layers.dense(output, units=11)
 
 		print('Discriminator output size:')
 		print(output)
@@ -147,7 +147,7 @@ def get_trainable_variables():
 # MINST
 # (X_train, y_train), (X_test, y_test) = mnist.load_data()
 # FASHION MNIST
-(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+(X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
 
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
