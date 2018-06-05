@@ -171,7 +171,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
-
+	print("ALL REAL LABELS")
+	print(all_real_labels)
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
 	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
 	binder_input_generator = tf.split(all_input_generator, len(DEVICES))
