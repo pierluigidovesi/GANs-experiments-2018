@@ -91,11 +91,11 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		for i in range(n_conv_layer):
 			output = layers.conv2d_transpose(output, filters=n_filters * DIM * channels, kernel_size=kernel_size,
 			                                 strides=strides, padding='same')
-			print('iter G: ', i, ' - n filters: ', n_filters * DIM * channels)
 			output = layers.batch_normalization(output, axis=bn_axis)
 			output = tf.maximum(alpha * output, output)
 			n_filters = int(n_filters/2)
-
+			print('iter G: ', i, ' - n filters: ', n_filters * DIM * channels)
+			print(output)
 
 		# ----- LastLayer, deConv, Batch, Leaky ----- #
 		output = layers.conv2d_transpose(output, filters=1 * channels, kernel_size=kernel_size,
