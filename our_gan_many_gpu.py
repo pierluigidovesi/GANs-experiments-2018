@@ -40,6 +40,8 @@ leakage = 0.01 # leaky constant
 N_GPU = 1
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
 
+# Label weights 
+label_weights = 0
 
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
@@ -254,7 +256,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# labels
 			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 			                                                               logits=disc_fake_labels)
-			generator_loss = gen_wasserstein_loss + labels_penalty_fakes
+			generator_loss = gen_wasserstein_loss + labels_penalty_fakes * label_weights
 
 			# ----- Disc Loss ----- #
 
@@ -277,7 +279,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# sum losses
 			fake_labels_weight = 0.1
-			discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes + labels_penalty_real + gradient_penalty
+			discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes * label_weights + labels_penalty_real * label_weights + gradient_penalty
 
 			generator_loss_list.append(generator_loss)
 			discriminator_loss_list.append(discriminator_loss)
