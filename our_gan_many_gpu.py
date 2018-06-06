@@ -188,7 +188,7 @@ y_train = y_hot
 
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
-	label_weights = tf.placeholder(tf.float32, shape=[1]) 
+	label_weights = tf.placeholder(tf.float32, shape=()) 
 	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
 	print('------------- G: TEST SAMPLES -----------------')
 	test_samples = generator(num_labels, test_input, reuse=True)
