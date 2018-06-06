@@ -28,7 +28,7 @@ OUTPUT_DIM = int(resolution_image**2)*channels
 disc_iters = 5
 latent_dim = 128
 DIM = 64
-channel_first = True
+channel_first = False
 
 # CONV Parameters
 kernel_size = (5, 5)
