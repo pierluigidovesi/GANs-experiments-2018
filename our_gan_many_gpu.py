@@ -188,7 +188,7 @@ y_train = y_hot
 
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
-
+	label_weights = tf.placeholder(tf.float32, shape=()) 
 	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
 	print('------------- G: TEST SAMPLES -----------------')
 	test_samples = generator(num_labels, test_input, reuse=True)
@@ -254,7 +254,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# labels
 			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 			                                                               logits=disc_fake_labels)
-			generator_loss = gen_wasserstein_loss + labels_penalty_fakes
+			generator_loss = gen_wasserstein_loss + labels_penalty_fakes * label_weights
 
 			# ----- Disc Loss ----- #
 
@@ -277,7 +277,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# sum losses
 			fake_labels_weight = 0.1
-			discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes + labels_penalty_real + gradient_penalty
+			discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes * label_weights + labels_penalty_real * label_weights + gradient_penalty
 
 			generator_loss_list.append(generator_loss)
 			discriminator_loss_list.append(discriminator_loss)
@@ -315,9 +315,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	num_macro_batches = int((X_train.shape[0]) // macro_batches_size)
 	discriminator_history = []
 	generator_history = []
-
+	
+	lab_param = 0
 	# EPOCHS FOR
 	for epoch in range(num_epochs):
+		
 		start_time = time.time()
 		print("epoch: ", epoch)
 		np.random.shuffle(indices)
@@ -348,7 +350,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                            discriminator_optimizer],
 				                           feed_dict={all_input_generator: discriminator_labels_with_noise,
 				                                      all_real_data: img_samples,
-				                                      all_real_labels: img_labels})
+				                                      all_real_labels: img_labels,
+								      label_weights: lab_param })
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
@@ -363,7 +366,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			gen_cost, _ = session.run([generator_loss,
 			                           generator_optimizer],
 			                          feed_dict={all_input_generator: generator_labels_with_noise,
-			                                     all_real_labels: fake_labels_onehot})
+			                                     all_real_labels: fake_labels_onehot,
+							     label_weights: lab_param})
 			generator_history.append(gen_cost)
 		# END FOR MACRO BATCHES
 
@@ -371,7 +375,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		sorted_labels = np.eye(num_labels)
 		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
 
-		generated_img = session.run([test_samples], feed_dict={test_input: sorted_labels_with_noise})
+		generated_img = session.run([test_samples], feed_dict={test_input: sorted_labels_with_noise,
+								       label_weights: lab_param})
 
 		generate_images(generated_img, epoch)
 		print(" time: ", time.time() - start_time)
@@ -391,6 +396,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			loss_file = open('disc_loss.txt', 'w')
 			for item in discriminator_history:
 				loss_file.write("%s\n" % item)
-
+		lab_param += 0.01
 		# END FOR EPOCHS
 # END SESSION
