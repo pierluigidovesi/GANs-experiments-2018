@@ -26,7 +26,7 @@ num_labels = 10
 channels = 3
 
 # architecture
-num_epochs = 60
+num_epochs = 200
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
