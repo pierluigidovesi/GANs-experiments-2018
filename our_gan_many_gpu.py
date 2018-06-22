@@ -26,7 +26,7 @@ num_labels = 10
 channels = 3
 
 # architecture
-num_epochs = 200
+num_epochs = 100
 BATCH_SIZE = 64
 TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
@@ -61,8 +61,6 @@ def generate_images(images, epoch):
 		plt.axis("off")
 	plt.axis("off")
 	plt.savefig("epoch_" + str(epoch) + ".png")
-	print("image created")
-	files.download("epoch_" + str(epoch) + ".png")
 	print("downloaded images epoch: ", epoch)
 	try:
 		files.download("epoch_" + str(epoch) + ".png")
