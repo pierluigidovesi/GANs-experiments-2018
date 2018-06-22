@@ -14,6 +14,12 @@ from keras.datasets import mnist
 from keras.datasets import fashion_mnist
 from keras.datasets import cifar10
 
+try:
+	from google.colab import files
+	print("google.colab imported")
+except:
+	pass
+
 # dataset settings
 resolution_image = 32
 num_labels = 10
@@ -55,6 +61,19 @@ def generate_images(images, epoch):
 		plt.axis("off")
 	plt.axis("off")
 	plt.savefig("epoch_" + str(epoch) + ".png")
+	try:
+		files.download("epoch_" + str(epoch) + ".png")
+		print("downloaded images epoch: ", epoch)
+	except:
+		pass
+
+	if epoch % 10 == 0:
+		try:
+			files.download("all_losses.png")
+			#files.download("gen_loss.txt")
+			#files.download("disc_loss.txt")
+		except:
+			pass
 
 
 def generator(n_samples, noise_with_labels, reuse=None):
