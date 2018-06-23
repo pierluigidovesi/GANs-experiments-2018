@@ -60,6 +60,7 @@ def generate_images(images, epoch):
 		plt.imshow(new_image)
 		plt.axis("off")
 	plt.axis("off")
+	plt.show()
 	plt.savefig("epoch_" + str(epoch) + ".png")
 	try:
 		files.download("epoch_" + str(epoch) + ".png")
