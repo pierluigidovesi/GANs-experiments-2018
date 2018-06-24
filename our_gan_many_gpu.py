@@ -39,21 +39,21 @@ always_show_fig = True
 
 # --------- VARIANT PARAMETERS ---------
 
-if mnist == True:
+if mnist:
 	from keras.datasets import mnist
 	resolution_image = 28
 	num_labels = 10
 	channels = 1
 	channel_first = False
 
-if fashion_mnist == True:
+if fashion_mnist:
 	from keras.datasets import fashion_mnist
 	resolution_image = 28
 	num_labels = 10
 	channels = 1
 	channel_first = False
 
-if cifar10 == True:
+if cifar10:
 	from keras.datasets import cifar10
 	resolution_image = 32
 	num_labels = 10
@@ -195,10 +195,12 @@ def get_trainable_variables():
 
 
 # -------------------------------- Load Dataset ---------------------------------- #
-# MINST
-# (X_train, y_train), (X_test, y_test) = mnist.load_data()
-# FASHION MNIST
-(X_train, y_train), (X_test, y_test) = cifar10.load_data()
+if mnist:
+	(X_train, y_train), (X_test, y_test) = mnist.load_data()
+if fashion_mnist:
+	(X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
+if cifar10:
+	(X_train, y_train), (X_test, y_test) = cifar10.load_data()
 
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
