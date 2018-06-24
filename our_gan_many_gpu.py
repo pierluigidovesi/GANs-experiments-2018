@@ -1,49 +1,66 @@
 import os, sys
-
 sys.path.append(os.getcwd())
 import numpy as np
 import tensorflow as tf
+from tensorflow import layers
 import time
 import matplotlib
-
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 # import sklearn.datasets
-from tensorflow import layers
-from keras.datasets import mnist
-from keras.datasets import fashion_mnist
-from keras.datasets import cifar10
 
-try:
-	from google.colab import files
-	print("google.colab imported")
-except:
-	pass
+# --------- SETTINGS ---------
 
-# dataset settings
-resolution_image = 32
-num_labels = 10
-channels = 3
+# dataset
+mnist         = True
+fashion_mnist = False
+cifar10       = False
 
-# architecture
-num_epochs = 100
-BATCH_SIZE = 64
-TRAINING_RATIO = 5  # The training ratio is the number of discriminator updates per generator update. The paper uses 5.
+# gan architecture
+num_epochs              = 100
+BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
-OUTPUT_DIM = int(resolution_image**2)*channels
-disc_iters = 5
-latent_dim = 128
-DIM = 64
-channel_first = False
+disc_iters              = 5   # Number of discriminator updates each generator update. The paper uses 5.
+latent_dim              = 128
+DIM                     = 64  # number of filters
 
 # CONV Parameters
 kernel_size = (5, 5)
-strides = 2
-size_init = 4
-leakage = 0.01 # leaky constant
+strides     = 2
+size_init   = 4
+leakage     = 0.01 # leaky constant
 
-# LIST OF NUMBER OF GPUs
+# number of GPUs
 N_GPU = 1
+
+# verbose
+always_get_loss = True
+always_show_fig = True
+
+# --------- VARIANT PARAMETERS ---------
+
+if mnist == True:
+	from keras.datasets import mnist
+	resolution_image = 28
+	num_labels = 10
+	channels = 1
+	channel_first = False
+
+if fashion_mnist == True:
+	from keras.datasets import fashion_mnist
+	resolution_image = 28
+	num_labels = 10
+	channels = 1
+	channel_first = False
+
+if cifar10 == True:
+	from keras.datasets import cifar10
+	resolution_image = 32
+	num_labels = 10
+	channels = 3
+	channel_first = False
+
+OUTPUT_DIM = int(resolution_image**2)*channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
 
 
@@ -60,21 +77,9 @@ def generate_images(images, epoch):
 		plt.imshow(new_image)
 		plt.axis("off")
 	plt.axis("off")
-	plt.show()
 	plt.savefig("epoch_" + str(epoch) + ".png")
-	try:
-		files.download("epoch_" + str(epoch) + ".png")
-		print("downloaded images epoch: ", epoch)
-	except:
-		pass
-
-	if epoch % 10 == 0:
-		try:
-			files.download("all_losses.png")
-			#files.download("gen_loss.txt")
-			#files.download("disc_loss.txt")
-		except:
-			pass
+	if always_show_fig:
+		plt.show()
 
 
 def generator(n_samples, noise_with_labels, reuse=None):
@@ -116,6 +121,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			output = layers.batch_normalization(output, axis=bn_axis)
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters/2)
+			if resolution_image == 28 and n_filters == 3:
+				output = output[:, :6, :6, :]
 			print('iter G: ', i, ' - n filters: ', n_filters * DIM * channels)
 			print(output)
 
@@ -401,13 +408,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		generate_images(generated_img, epoch)
 		print(" time: ", time.time() - start_time)
 
-		if epoch % 10 == 0 or epoch == (num_epochs - 1):
+		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
 			plt.figure()
 			gen_line = plt.plot(generator_history)  # , label="Generator Loss")
 			disc_line = plt.plot(discriminator_history)  # , label="Discriminator Loss")
 			# plt.legend([gen_line, disc_line], ["Generator Loss", "Discriminator Loss"])
 			plt.savefig("all_losses.png")
+			plt.show()
 
 			loss_file = open('gen_loss.txt', 'w')
 			for item in generator_history:
