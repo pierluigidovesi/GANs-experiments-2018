@@ -183,6 +183,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		print(output)
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
+
+		cut_flag = True
 		for i in range(n_conv_layer):
 			print('iter G: ', i, ' - tot filters: ', n_filters * DIM * channels, ' - n_filters: ', n_filters)
 
@@ -202,7 +204,6 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 			n_filters = int(n_filters/2)
 
-			cut_flag = True
 			if cut_flag and resolution_image == 28 and 2*size_init*(1+i) >= 8:
 				cut_flag = False
 				if channel_first:
