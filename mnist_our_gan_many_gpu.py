@@ -52,7 +52,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
-	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of discriminator
+	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get
+																# variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
 		alpha = 0.01
 		output = layers.dense(inputs=noise_with_labels, units=4 * 4 * 4 * 64)
@@ -66,14 +67,19 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			# size: 7 x 7 x 128
 			output = tf.reshape(output, (-1, 4, 4, 4 * 64))
 			bn_axis = -1  # [0, 1, 2]  # last
+			print('channel first: FALSE')
+			print(output)
 
 		# ----- Layer2, deConv, Batch, Leaky ----- #
 		output = layers.conv2d_transpose(output, filters=4 * DIM, kernel_size=(5, 5), strides=2, padding='same')
+		print(output)
 		output = layers.batch_normalization(output, axis=bn_axis)
 		output = tf.maximum(alpha * output, output)
 		if channel_first:
 			output = output[:, :, :7, :7]
 		else:
+			print('cutted:')
+			print(output)
 			output = output[:, :7, :7, :]
 
 		# ----- Layer3, deConv, Batch, Leaky ----- #

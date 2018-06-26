@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 # --------- SETTINGS ---------
 
 # dataset
-mnist         = True
-fashion_mnist = False
-cifar10       = False
+mnist_data         = True
+fashion_mnist_data = False
+cifar10_data       = False
 
 # gan architecture
 num_epochs              = 100
@@ -28,7 +28,7 @@ DIM                     = 64  # number of filters
 kernel_size = (5, 5)
 strides     = 2
 size_init   = 4
-leakage     = 0.01 # leaky constant
+leakage     = 0.01   # leaky constant
 
 # number of GPUs
 N_GPU = 1
@@ -39,26 +39,35 @@ always_show_fig = True
 
 # --------- VARIANT PARAMETERS ---------
 
-if mnist:
+if mnist_data:
+	print('mnist dataset')
 	from keras.datasets import mnist
 	resolution_image = 28
 	num_labels = 10
 	channels = 1
 	channel_first = False
 
-if fashion_mnist:
+
+if fashion_mnist_data:
+	print('fashion mnist dataset')
 	from keras.datasets import fashion_mnist
 	resolution_image = 28
 	num_labels = 10
 	channels = 1
 	channel_first = False
 
-if cifar10:
+if cifar10_data:
+	print('cifar10 dataset')
 	from keras.datasets import cifar10
 	resolution_image = 32
 	num_labels = 10
 	channels = 3
 	channel_first = False
+
+print('resolution image: ', resolution_image)
+print('channels:         ', channels)
+print('strides:          ', strides)
+print('kernel size:      ', kernel_size)
 
 OUTPUT_DIM = int(resolution_image**2)*channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
@@ -88,42 +97,96 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
-	n_conv_layer = int(np.log2(resolution_image/size_init))
+
+	# number conv layer number of time we need to duplicate image
+	# starting from size_init to image_resolution ----> if image_res 2 -> 1 layer, 4 -> 2layer ...
+	# then log2
+
+	# num filters --> arriva a 1 per ultimo layer
+	# if 1 layer --> 1, if 2 layers --> 2, 3 layers --> 4
+	# then 2^conv_layer-1
+
+	# for cifar 10:
+	# image res 32, size init 4 --> 32/4 = 8 --> log2 8 = 3
+	# filters = 2^3 = 4
+
+	# for mnist:
+	# image res 28, size init 4 --> 28/4 = 7 (wrong, but) --> log2 7 = 2.8 (ceil!)--> 3 ok
+	# n_filter = 4
+
+	# (if image size is a power of 2 --> you can n_filter = image_res/n_filter)
+
+	n_conv_layer = int(np.ceil(np.log2(resolution_image/size_init)))
 	n_filters = int(2**(n_conv_layer-1))
 
-	print('n-filters gen ', n_filters)
-	print('n-conv gen ', n_conv_layer)
+
+	print('n-conv layer generator: ', n_conv_layer)
+	print('n-filters generator:    ', n_filters)
+
 
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of discriminator
+
 		# ----- Layer1, Dense, Batch, Leaky ----- #
-		output = layers.dense(inputs=noise_with_labels, units=channels*(size_init * size_init) * (n_filters * DIM))
+		print('units dense generator: ', channels * (size_init * size_init) * (n_filters * DIM))
+
+		output = layers.dense(inputs=noise_with_labels,
+		                      units=channels * (size_init * size_init) * (n_filters * DIM))
+
+
 		output = layers.batch_normalization(output)
 		output = tf.maximum(leakage * output, output)
 
-		print('units dense generator: ', channels*(size_init * size_init) * (n_filters * DIM))
 		print(output)
 
 		if channel_first:
 			# size: 128 x 7 x 7
+			print('channel first TRUE')
+			print('before:')
+			print(output)
 			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
-			print('channel first YES - ', n_filters * DIM * channels, ', ', size_init, ', ', size_init)
+			print('after:')
 			print(output)
 		else:
 			# size: 7 x 7 x 128
+			print('channel first FALSE')
+			print('before:')
+			print(output)
 			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
 			bn_axis = -1  # [0, 1, 2]  # last
+			print('after:')
+			print(output)
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
 		for i in range(n_conv_layer):
-			output = layers.conv2d_transpose(output, filters=n_filters * DIM * channels, kernel_size=kernel_size,
-			                                 strides=strides, padding='same')
+			print('iter G: ', i, ' - tot filters: ', n_filters * DIM * channels, 'n_filters: ', n_filters)
+
+			print('before conv2d_transpose:')
+			print(output)
+
+			output = layers.conv2d_transpose(output,
+			                                 filters=n_filters * DIM * channels,
+			                                 kernel_size=kernel_size,
+			                                 strides=strides,
+			                                 padding='same')
+			print('after: ')
+			print(output)
+
 			output = layers.batch_normalization(output, axis=bn_axis)
 			output = tf.maximum(leakage * output, output)
+
 			n_filters = int(n_filters/2)
-			if resolution_image == 28 and n_filters == 3:
-				output = output[:, :6, :6, :]
-			print('iter G: ', i, ' - n filters: ', n_filters * DIM * channels)
+
+			if resolution_image == 28 and size_init*(2+i) == 8:
+				if channel_first:
+					print('before cut')
+					print(output)
+					print('after cut mnist - channel first TRUE')
+					output = output[:, :, :7, :7]
+				else:
+					print('cut mnist - channel first FALSE')
+					output = output[:, :7, :7, :]
+
 			print(output)
 
 		# ----- LastLayer, deConv, Batch, Leaky ----- #
@@ -163,7 +226,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			                       strides=strides, padding='same')
 			print('Output at iteration: ', i)
 			print(output)
-			print('ALpha')
+			print('Alpha (leakage)')
 			print(leakage)
 			print('alpha*output')
 			print(leakage * output)
@@ -195,11 +258,11 @@ def get_trainable_variables():
 
 
 # -------------------------------- Load Dataset ---------------------------------- #
-if mnist:
+if mnist_data:
 	(X_train, y_train), (X_test, y_test) = mnist.load_data()
-if fashion_mnist:
+if fashion_mnist_data:
 	(X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
-if cifar10:
+if cifar10_data:
 	(X_train, y_train), (X_test, y_test) = cifar10.load_data()
 
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
@@ -217,16 +280,20 @@ y_train = y_hot
 
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
-	label_weights = tf.placeholder(tf.float32, shape=()) 
+
+	label_weights = tf.placeholder(tf.float32, shape=())
 	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
+
 	print('------------- G: TEST SAMPLES -----------------')
+
 	test_samples = generator(num_labels, test_input, reuse=True)
+
+	print('------------- G: GEN ARCH -----------------')
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
-	#print("ALL REAL LABELS")
-	#print(all_real_labels)
+
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
 	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
 	binder_input_generator = tf.split(all_input_generator, len(DEVICES))
@@ -344,11 +411,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	num_macro_batches = int((X_train.shape[0]) // macro_batches_size)
 	discriminator_history = []
 	generator_history = []
-	
+
 	lab_param = 0
 	# EPOCHS FOR
 	for epoch in range(num_epochs):
-		
+
 		start_time = time.time()
 		print("epoch: ", epoch)
 		np.random.shuffle(indices)
