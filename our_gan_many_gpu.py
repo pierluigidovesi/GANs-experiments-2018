@@ -314,7 +314,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# device = DEVICE[i]
 		# real_data_conv = split_real_data_conv[i]
 
-		print(device_index)
+		print('GPU: device_index: ', device_index )
 
 		# choose what GPU
 		with tf.device(device):
@@ -345,6 +345,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			print('----------------- D: DISC FAKE SCORE -----------------')
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
+			print('graph: DONE')
 			# ---------------------------------- Losses ------------------------------------ #
 
 			# ----- Gen Loss ----- #
@@ -454,7 +455,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                           feed_dict={all_input_generator: discriminator_labels_with_noise,
 				                                      all_real_data: img_samples,
 				                                      all_real_labels: img_labels,
-				                                      label_weights: labels_incremental_weight })
+				                                      label_weights: labels_incremental_weight})
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
@@ -491,9 +492,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
 			plt.figure()
-			gen_line = plt.plot(generator_history)  # , label="Generator Loss")
-			disc_line = plt.plot(discriminator_history)  # , label="Discriminator Loss")
-			# plt.legend([gen_line, disc_line], ["Generator Loss", "Discriminator Loss"])
+			gen_line = plt.plot(generator_history, label='GEN')
+			disc_line = plt.plot(discriminator_history, label='DISC')
+			plt.legend()
 			plt.savefig("all_losses.png")
 
 			if always_show_fig:
