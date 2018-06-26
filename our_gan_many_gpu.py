@@ -42,13 +42,13 @@ fashion_mnist_data = False
 cifar10_data       = False
 
 # gan architecture
-num_epochs              = 100
+num_epochs              = 50
 BATCH_SIZE              = 64
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
 disc_iters              = 5   # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim              = 128
 DIM                     = 64  # number of filters
-label_increment         = 0.3
+label_increment         = 0.33
 
 # CONV Parameters
 kernel_size = (5, 5)
