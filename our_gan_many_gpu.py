@@ -467,7 +467,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			noise_macro_batches = np.random.rand(macro_batches_size, latent_dim)
 			disc_cost_sum = 0
 
-			if i % (num_macro_batches // 10) == 0:
+			if not im_tqdm and i % (num_macro_batches // 10) == 0:
 				print(100*i // num_macro_batches, '%')
 
 			# (MICRO) BATCHES FOR
@@ -515,7 +515,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		generate_images(generated_img, epoch)
 		print(" time: ", time.time() - start_time)
 
-		if not im_tqdm and (epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss):
+		if (epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss):
 			# SAVE & PRINT LOSSES
 			plt.figure()
 			gen_line = plt.plot(generator_history)  # , label="Generator Loss")
