@@ -7,7 +7,11 @@ import time
 import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+plt.ion()
+
+
 from tqdm import tqdm
+im_tqdm = True
 
 try:
 	# memory footprint support libraries/code
@@ -44,6 +48,7 @@ GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
 disc_iters              = 5   # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim              = 128
 DIM                     = 64  # number of filters
+label_increment         = 0.3
 
 # CONV Parameters
 kernel_size = (5, 5)
@@ -112,7 +117,6 @@ def generate_images(images, epoch):
 	plt.axis("off")
 	plt.savefig("epoch_" + str(epoch) + ".png")
 	if always_show_fig:
-		print('samples:')
 		plt.show()
 
 	try:
@@ -445,7 +449,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	discriminator_history = []
 	generator_history = []
 
-	lab_param = 0
+	labels_incremental_weight = 0
 	# EPOCHS FOR
 	for epoch in range(num_epochs):
 
@@ -480,7 +484,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                           feed_dict={all_input_generator: discriminator_labels_with_noise,
 				                                      all_real_data: img_samples,
 				                                      all_real_labels: img_labels,
-								      label_weights: lab_param })
+				                                      label_weights: labels_incremental_weight })
 				disc_cost_sum += disc_cost
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(disc_cost_sum))
@@ -496,7 +500,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                           generator_optimizer],
 			                          feed_dict={all_input_generator: generator_labels_with_noise,
 			                                     all_real_labels: fake_labels_onehot,
-							     label_weights: lab_param})
+			                                     label_weights: labels_incremental_weight})
 			generator_history.append(gen_cost)
 		# END FOR MACRO BATCHES
 
@@ -504,13 +508,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		sorted_labels = np.eye(num_labels)
 		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
 
-		generated_img = session.run([test_samples], feed_dict={test_input: sorted_labels_with_noise,
-								       label_weights: lab_param})
+		generated_img = session.run([test_samples],
+		                            feed_dict={test_input: sorted_labels_with_noise,
+		                                       label_weights: labels_incremental_weight})
 
 		generate_images(generated_img, epoch)
 		print(" time: ", time.time() - start_time)
 
-		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
+		if not im_tqdm and (epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss):
 			# SAVE & PRINT LOSSES
 			plt.figure()
 			gen_line = plt.plot(generator_history)  # , label="Generator Loss")
@@ -526,6 +531,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			loss_file = open('disc_loss.txt', 'w')
 			for item in discriminator_history:
 				loss_file.write("%s\n" % item)
-		lab_param += 0.01
+
+		# labels weight settings
+		labels_incremental_weight += label_increment
+		labels_incremental_weight = max(labels_incremental_weight,1)
+
 		# END FOR EPOCHS
 # END SESSION
