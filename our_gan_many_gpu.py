@@ -7,6 +7,7 @@ import time
 import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 try:
 	# memory footprint support libraries/code
@@ -111,6 +112,7 @@ def generate_images(images, epoch):
 	plt.axis("off")
 	plt.savefig("epoch_" + str(epoch) + ".png")
 	if always_show_fig:
+		print('samples:')
 		plt.show()
 
 	try:
@@ -253,7 +255,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 
 		# ----- LoopLayers, Conv, Leaky ----- #
 		for i in range(n_conv_layer):
-			print('iter G: ', i, ' - tot filters: ', n_filters*DIM, ' - n_filters: ',n_filters)
+			print('iter D: ', i, ' - tot filters: ', n_filters*DIM, ' - n_filters: ',n_filters)
 
 			output = layers.conv2d(output,
 			                       filters=n_filters*DIM,
@@ -454,7 +456,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		y_train = y_train[indices]
 
 		# MACRO BATCHES FOR
-		for i in range(num_macro_batches):  # macro batches
+		for i in tqdm(range(num_macro_batches)):  # macro batches
 			# print("macro_batch: ", i)
 			discriminator_macro_batches = X_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			labels_macro_batches = y_train[i * macro_batches_size:(i + 1) * macro_batches_size]
