@@ -159,7 +159,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
 		for i in range(n_conv_layer):
-			print('iter G: ', i, ' - tot filters: ', n_filters * DIM * channels, 'n_filters: ', n_filters)
+			print('iter G: ', i, ' - tot filters: ', n_filters * DIM * channels, ' - n_filters: ', n_filters)
 
 			print('before conv2d_transpose:')
 			print(output)
@@ -177,7 +177,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 			n_filters = int(n_filters/2)
 
-			if resolution_image == 28 and size_init*(2+i) == 8:
+			if resolution_image == 28 and 2*size_init*(1+i) == 8:
 				if channel_first:
 					print('before cut')
 					print(output)
@@ -210,13 +210,15 @@ def discriminator(images, reuse=None, n_conv_layer=3):
     """
 	n_conv_layer = int(np.log2(resolution_image/size_init))
 	n_filters = 1
-	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of generator
+	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
+																	# get variables of generator
 		print('Input for discriminator')
 		print(images)
 		if channel_first:
 			output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
 		else:
 			output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
+
 		print('Input for discriminator, Reshaped')
 		print(images)
 
