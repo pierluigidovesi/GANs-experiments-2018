@@ -203,7 +203,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 			n_filters = int(n_filters/2)
 
-			if resolution_image == 28 and 2*size_init*(1+i) == 8:
+			if resolution_image == 28 and 2*size_init*(1+i) >= 8:
 				if channel_first:
 					print('cut mnist - channel first TRUE')
 					output = output[:, :, :7, :7]
