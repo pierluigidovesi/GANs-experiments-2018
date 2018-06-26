@@ -186,6 +186,17 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		cut_flag = True
 		for i in range(n_conv_layer):
+
+			if cut_flag and resolution_image == 28 and size_init*(1+i) >= 8:
+				cut_flag = False
+				if channel_first:
+					print('cut mnist - channel first TRUE, iteration: ', i)
+					output = output[:, :, :7, :7]
+				else:
+					print('cut mnist - channel first FALSE, iteration: ', i)
+					output = output[:, :7, :7, :]
+				print(output)
+
 			print('iter G: ', i, ' - tot filters: ', n_filters * DIM * channels, ' - n_filters: ', n_filters)
 
 			print('before conv2d_transpose:')
@@ -204,15 +215,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 			n_filters = int(n_filters/2)
 
-			if cut_flag and resolution_image == 28 and 2*size_init*(1+i) >= 8:
-				cut_flag = False
-				if channel_first:
-					print('cut mnist - channel first TRUE')
-					output = output[:, :, :7, :7]
-				else:
-					print('cut mnist - channel first FALSE')
-					output = output[:, :7, :7, :]
-				print(output)
+
 
 		# ----- LastLayer, deConv, Batch, Leaky ----- #
 
