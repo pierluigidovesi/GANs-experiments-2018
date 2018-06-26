@@ -7,7 +7,7 @@ import time
 import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-plt.ion()
+matplotlib.rcParams['backend'] = "Qt4Agg"
 
 
 from tqdm import tqdm
