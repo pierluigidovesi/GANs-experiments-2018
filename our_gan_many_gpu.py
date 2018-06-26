@@ -54,7 +54,7 @@ label_increment         = 0.33
 # CONV Parameters
 kernel_size = (5, 5)
 strides     = 2
-size_init   = 2
+size_init   = 8
 leakage     = 0.01   # leaky constant
 
 # number of GPUs
@@ -448,6 +448,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	labels_incremental_weight = 0
 	# EPOCHS FOR
+	init_time = time.time()
 	for epoch in range(num_epochs):
 
 		start_time = time.time()
@@ -510,7 +511,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		                                       label_weights: labels_incremental_weight})
 
 		generate_images(generated_img, epoch)
-		print(" time: ", time.time() - start_time)
+
+		print("cycle time: ", time.time() - start_time, "total time: ", time.time() - init_time)
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
@@ -519,7 +521,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			disc_line = plt.plot(discriminator_history)  # , label="Discriminator Loss")
 			# plt.legend([gen_line, disc_line], ["Generator Loss", "Discriminator Loss"])
 			plt.savefig("all_losses.png")
-			plt.show()
+
+			if always_show_fig:
+				plt.show()
 
 			loss_file = open('gen_loss.txt', 'w')
 			for item in generator_history:
