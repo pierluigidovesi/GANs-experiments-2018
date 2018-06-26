@@ -184,11 +184,10 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
 
-		cut_flag = True
 		for i in range(n_conv_layer):
 
-			if cut_flag and resolution_image == 28 and size_init*(1+i) >= 8:
-				cut_flag = False
+			if cut_flag and resolution_image == 28 and size_init*(1+i) == 8:
+
 				if channel_first:
 					print('cut mnist - channel first TRUE, iteration: ', i)
 					output = output[:, :, :7, :7]
