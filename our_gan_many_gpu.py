@@ -141,21 +141,15 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		if channel_first:
 			# size: 128 x 7 x 7
 			print('channel first TRUE')
-			print('before:')
-			print(output)
 			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
-			print('after:')
-			print(output)
 		else:
 			# size: 7 x 7 x 128
 			print('channel first FALSE')
-			print('before:')
-			print(output)
 			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
 			bn_axis = -1  # [0, 1, 2]  # last
-			print('after:')
-			print(output)
+		print('after reshape:')
+		print(output)
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
 		for i in range(n_conv_layer):
@@ -169,7 +163,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			                                 kernel_size=kernel_size,
 			                                 strides=strides,
 			                                 padding='same')
-			print('after: ')
+			print('after conv2d: ')
 			print(output)
 
 			output = layers.batch_normalization(output, axis=bn_axis)
@@ -179,25 +173,28 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 			if resolution_image == 28 and 2*size_init*(1+i) == 8:
 				if channel_first:
-					print('before cut')
-					print(output)
-					print('after cut mnist - channel first TRUE')
+					print('cut mnist - channel first TRUE')
 					output = output[:, :, :7, :7]
 				else:
 					print('cut mnist - channel first FALSE')
 					output = output[:, :7, :7, :]
-
-			print(output)
+				print(output)
 
 		# ----- LastLayer, deConv, Batch, Leaky ----- #
-		output = layers.conv2d_transpose(output, filters=1 * channels, kernel_size=kernel_size,
-		                                 strides=1, padding='same')
 
 		print('n filters layer G out: ', channels)
+		output = layers.conv2d_transpose(output,
+		                                 filters=1*channels,
+		                                 kernel_size=kernel_size,
+		                                 strides=1,
+		                                 padding='same')
+		print('after conv2d: ')
+		print(output)
+
 		output = tf.nn.tanh(output)
 		output = tf.reshape(output, [-1, OUTPUT_DIM])
 
-		print('Generator output size:')
+		print('Generator after reshape output size:')
 		print(output)
 
 	return output
@@ -208,39 +205,47 @@ def discriminator(images, reuse=None, n_conv_layer=3):
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
     """
-	n_conv_layer = int(np.log2(resolution_image/size_init))
+	n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
 	n_filters = 1
+
 	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
 																	# get variables of generator
-		print('Input for discriminator')
+		print('Input for discriminator:')
 		print(images)
+
 		if channel_first:
+			print('channel first: TRUE')
 			output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
 		else:
+			print('channel first: FALSE')
 			output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
 
-		print('Input for discriminator, Reshaped')
+		print('Input for discriminator, after reshape:')
 		print(images)
 
 		# ----- LoopLayers, Conv, Leaky ----- #
 		for i in range(n_conv_layer):
-			output = layers.conv2d(output, filters=n_filters*DIM, kernel_size=kernel_size,
-			                       strides=strides, padding='same')
-			print('Output at iteration: ', i)
+			print('iter G: ', i, ' - tot filters: ', n_filters*DIM, ' - n_filters: ',n_filters)
+
+			output = layers.conv2d(output,
+			                       filters=n_filters*DIM,
+			                       kernel_size=kernel_size,
+			                       strides=strides,
+			                       padding='same')
+
+			print('output after conv2d: ')
 			print(output)
-			print('Alpha (leakage)')
-			print(leakage)
-			print('alpha*output')
-			print(leakage * output)
+
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters*2)
-			print('n_filters in D: ',n_filters)
+
 
 		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters/2) * DIM)])
+		print('output reshaped for dens layer: ')
+		print(output)
 
 		# ----- Layer4, Dense, Linear ----- #
 		output = layers.dense(output, units=num_labels+1)
-
 		print('Discriminator output size:')
 		print(output)
 
