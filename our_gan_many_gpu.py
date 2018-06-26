@@ -54,7 +54,7 @@ label_increment         = 0.33
 # CONV Parameters
 kernel_size = (5, 5)
 strides     = 2
-size_init   = 8
+size_init   = 7
 leakage     = 0.01   # leaky constant
 
 # number of GPUs
