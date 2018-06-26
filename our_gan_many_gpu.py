@@ -80,7 +80,10 @@ def generate_images(images, epoch):
 	plt.figure(figsize=(100, 10))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
 	for i in range(num_labels):
-		new_image = test_image_stack[i].reshape(resolution_image, resolution_image, channels)
+		if channels > 1:
+			new_image = test_image_stack[i].reshape(resolution_image, resolution_image, channels)
+		else:
+			new_image = test_image_stack[i].reshape(resolution_image, resolution_image)
 		plt.subplot(1, num_labels, i + 1)
 		plt.axis("off")
 		plt.imshow(new_image)
@@ -291,11 +294,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	label_weights = tf.placeholder(tf.float32, shape=())
 	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
 
-	print('------------- G: TEST SAMPLES -----------------')
+	print('----------------- G: TEST SAMPLES    -----------------')
 
 	test_samples = generator(num_labels, test_input, reuse=True)
-
-	print('------------- G: GEN ARCH -----------------')
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
@@ -320,32 +321,30 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# choose what GPU
 		with tf.device(device):
 
-
 			# --------------------------------- Placeholders ------------------------------- #
 
 			# GENERATOR
 			# ----- Noise + Labels(G) ----- #
-			#input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
+			# input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
 			input_generator = one_device_input_generator
 
 			# DISCRIMINATOR
 			# ------ Real Samples(D) ------ #
-			#real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
+			# real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 			real_samples = tf.cast(one_device_real_data, tf.float32)
 
 			# -------- Labels(D) ---------- #
-			#labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
+			# labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 			labels = one_device_real_labels
 
 			# ----------------------------------- Outputs ----------------------------------- #
-			print('------------- G: FAKE SAMPLES -----------------')
+			print('----------------- G: FAKE SAMPLES    -----------------')
 			fake_samples = generator(BATCH_SIZE, input_generator, reuse=True)
 
-			print('------------- D: DISC REAL SCORE -----------------')
+			print('----------------- D: DISC REAL SCORE -----------------')
 			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
-			print('------------- D: DISC REAL SCORE -----------------')
+			print('----------------- D: DISC REAL SCORE -----------------')
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
-
 
 			# ---------------------------------- Losses ------------------------------------ #
 
