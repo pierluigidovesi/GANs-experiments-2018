@@ -7,6 +7,7 @@ import time
 import matplotlib
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+matplotlib.get_backend()
 matplotlib.rcParams['backend'] = "Qt4Agg"
 
 
@@ -37,8 +38,8 @@ except:
 # --------- SETTINGS ---------
 
 # dataset
-mnist_data         = True
-fashion_mnist_data = False
+mnist_data         = False
+fashion_mnist_data = True
 cifar10_data       = False
 
 # gan architecture
