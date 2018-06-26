@@ -73,8 +73,6 @@ if mnist_data:
 	num_labels = 10
 	channels = 1
 	channel_first = False
-	cut_flag = True
-
 
 if fashion_mnist_data:
 	print('fashion mnist dataset')
@@ -83,7 +81,6 @@ if fashion_mnist_data:
 	num_labels = 10
 	channels = 1
 	channel_first = False
-	cut_flag = True
 
 if cifar10_data:
 	print('cifar10 dataset')
@@ -92,7 +89,6 @@ if cifar10_data:
 	num_labels = 10
 	channels = 3
 	channel_first = False
-	cut_flag = False
 
 print('resolution image: ', resolution_image)
 print('channels:         ', channels)
@@ -206,7 +202,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 			n_filters = int(n_filters/2)
 
-			if cut_flag and 2*size_init*(1+i) >= 8:
+			cut_flag = True
+			if cut_flag and resolution_image == 28 and 2*size_init*(1+i) >= 8:
 				cut_flag = False
 				if channel_first:
 					print('cut mnist - channel first TRUE')
