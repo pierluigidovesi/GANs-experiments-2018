@@ -38,8 +38,8 @@ except:
 # --------- SETTINGS ---------
 
 # dataset
-mnist_data         = False
-fashion_mnist_data = True
+mnist_data         = True
+fashion_mnist_data = False
 cifar10_data       = False
 
 # gan architecture
@@ -54,7 +54,7 @@ label_increment         = 0.33
 # CONV Parameters
 kernel_size = (5, 5)
 strides     = 2
-size_init   = 4
+size_init   = 2
 leakage     = 0.01   # leaky constant
 
 # number of GPUs
@@ -134,7 +134,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
     """
 
 	# number conv layer number of time we need to duplicate image
-	# starting from size_init to image_resolution ----> if image_res 2 -> 1 layer, 4 -> 2layer ...
+	# starting from size_init to image_resolution --> if image_res 2 -> 1 layer, 4 -> 2layer ...
 	# then log2
 
 	# num filters --> arriva a 1 per ultimo layer
@@ -147,26 +147,23 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 	# for mnist:
 	# image res 28, size init 4 --> 28/4 = 7 (wrong, but) --> log2 7 = 2.8 (ceil!)--> 3 ok
-	# n_filter = 4
+	# n_filter = 4 (POSSIBLE REDUCTION IS SPECIFIED)
 
 	# (if image size is a power of 2 --> you can n_filter = image_res/n_filter)
 
 	n_conv_layer = int(np.ceil(np.log2(resolution_image/size_init)))
 	n_filters = int(2**(n_conv_layer-1))
 
-
 	print('n-conv layer generator: ', n_conv_layer)
 	print('n-filters generator:    ', n_filters)
 
-
-	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to get variables of discriminator
-
+	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
+																# get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
 		print('units dense generator: ', channels * (size_init * size_init) * (n_filters * DIM))
 
 		output = layers.dense(inputs=noise_with_labels,
 		                      units=channels * (size_init * size_init) * (n_filters * DIM))
-
 
 		output = layers.batch_normalization(output)
 		output = tf.maximum(leakage * output, output)
@@ -274,7 +271,6 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters*2)
 
-
 		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters/2) * DIM)])
 		print('output reshaped for dens layer: ')
 		print(output)
@@ -375,7 +371,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			print('----------------- D: DISC REAL SCORE -----------------')
 			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
-			print('----------------- D: DISC REAL SCORE -----------------')
+			print('----------------- D: DISC FAKE SCORE -----------------')
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
 			# ---------------------------------- Losses ------------------------------------ #
@@ -516,7 +512,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		generate_images(generated_img, epoch)
 		print(" time: ", time.time() - start_time)
 
-		if (epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss):
+		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
 			plt.figure()
 			gen_line = plt.plot(generator_history)  # , label="Generator Loss")
@@ -535,7 +531,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		# labels weight settings
 		labels_incremental_weight += label_increment
-		labels_incremental_weight = max(labels_incremental_weight,1)
+		labels_incremental_weight = max(labels_incremental_weight, 1)
 
 		# END FOR EPOCHS
 # END SESSION
