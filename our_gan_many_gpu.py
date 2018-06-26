@@ -9,52 +9,31 @@ import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.get_backend()
 matplotlib.rcParams['backend'] = "Qt4Agg"
-
-
+# import sklearn.datasets
 from tqdm import tqdm
 im_tqdm = True
 
-try:
-	# memory footprint support libraries/code
-	import psutil
-	import humanize
-	import os
-	import GPUtil as GPU
-	GPUs = GPU.getGPUs()
-	# XXX: only one GPU on Colab and isn’t guaranteed
-	gpu = GPUs[0]
-
-	def printm():
-		process = psutil.Process(os.getpid())
-		print("Gen RAM Free: " + humanize.naturalsize( psutil.virtual_memory().available ), " | Proc size: " + humanize.naturalsize( process.memory_info().rss))
-		print("GPU RAM Free: {0:.0f}MB | Used: {1:.0f}MB | Util {2:3.0f}% | Total {3:.0f}MB".format(gpu.memoryFree, gpu.memoryUsed, gpu.memoryUtil*100, gpu.memoryTotal))
-except:
-	pass
-
-
-
-# import sklearn.datasets
 
 # --------- SETTINGS ---------
 
 # dataset
-mnist_data         = True
+mnist_data         = False
 fashion_mnist_data = False
-cifar10_data       = False
+cifar10_data       = True
 
 # gan architecture
 num_epochs              = 50
 BATCH_SIZE              = 64
-GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
-disc_iters              = 5   # Number of discriminator updates each generator update. The paper uses 5.
+GRADIENT_PENALTY_WEIGHT = 10   # As per the paper
+disc_iters              = 5    # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim              = 128
-DIM                     = 64  # number of filters
-label_increment         = 0.33
+DIM                     = 64   # number of filters
+label_increment         = 0.01
 
 # CONV Parameters
 kernel_size = (5, 5)
 strides     = 2
-size_init   = 7
+size_init   = 8
 leakage     = 0.01   # leaky constant
 
 # number of GPUs
@@ -62,7 +41,7 @@ N_GPU = 1
 
 # verbose
 always_get_loss = True
-always_show_fig = True
+always_show_fig = False
 
 # --------- VARIANT PARAMETERS ---------
 
@@ -119,11 +98,6 @@ def generate_images(images, epoch):
 	if always_show_fig:
 		plt.show()
 
-	try:
-		printm()
-	except:
-		pass
-
 
 def generator(n_samples, noise_with_labels, reuse=None):
 	"""
@@ -153,13 +127,13 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	n_conv_layer = int(np.ceil(np.log2(resolution_image/size_init)))
 	n_filters = int(2**(n_conv_layer-1))
 
-	print('n-conv layer generator: ', n_conv_layer)
-	print('n-filters generator:    ', n_filters)
+	print(' G: n-conv layer generator: ', n_conv_layer)
+	print(' G: n-filters generator:    ', n_filters)
 
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
 																# get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
-		print('units dense generator: ', channels * (size_init * size_init) * (n_filters * DIM))
+		print(' G: units dense generator: ', channels * (size_init * size_init) * (n_filters * DIM))
 
 		output = layers.dense(inputs=noise_with_labels,
 		                      units=channels * (size_init * size_init) * (n_filters * DIM))
@@ -167,19 +141,18 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		output = layers.batch_normalization(output)
 		output = tf.maximum(leakage * output, output)
 
+		print(' G: dense layer')
 		print(output)
 
 		if channel_first:
 			# size: 128 x 7 x 7
-			print('channel first TRUE')
 			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
 		else:
 			# size: 7 x 7 x 128
-			print('channel first FALSE')
 			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
 			bn_axis = -1  # [0, 1, 2]  # last
-		print('after reshape:')
+		print(' G: channel reshape:')
 		print(output)
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
@@ -189,24 +162,19 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			if resolution_image == 28 and size_init*(1+i) == 8:
 
 				if channel_first:
-					print('cut mnist - channel first TRUE, iteration: ', i)
 					output = output[:, :, :7, :7]
 				else:
-					print('cut mnist - channel first FALSE, iteration: ', i)
 					output = output[:, :7, :7, :]
+				print(' G: cut mnist, iteration: ', i)
 				print(output)
 
-			print('iter G: ', i, ' - tot filters: ', n_filters * DIM * channels, ' - n_filters: ', n_filters)
-
-			print('before conv2d_transpose:')
-			print(output)
+			print(' G: conv2d_transpose iter', i, ' - tot filters: ', n_filters * DIM * channels, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d_transpose(output,
 			                                 filters=n_filters * DIM * channels,
 			                                 kernel_size=kernel_size,
 			                                 strides=strides,
 			                                 padding='same')
-			print('after conv2d: ')
 			print(output)
 
 			output = layers.batch_normalization(output, axis=bn_axis)
@@ -218,19 +186,18 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		# ----- LastLayer, deConv, Batch, Leaky ----- #
 
-		print('n filters layer G out: ', channels)
+		print(' G: last conv2d_transpose layer - n filters layer: ', channels)
 		output = layers.conv2d_transpose(output,
 		                                 filters=1*channels,
 		                                 kernel_size=kernel_size,
 		                                 strides=1,
 		                                 padding='same')
-		print('after conv2d: ')
 		print(output)
 
 		output = tf.nn.tanh(output)
 		output = tf.reshape(output, [-1, OUTPUT_DIM])
 
-		print('Generator after reshape output size:')
+		print(' G: output reshape')
 		print(output)
 
 	return output
@@ -244,24 +211,25 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 	n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
 	n_filters = 1
 
+	print(' D: n-conv layer discriminator: ', n_conv_layer)
+	print(' D: n-filters discriminator:    ', n_filters)
+
 	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
 																	# get variables of generator
-		print('Input for discriminator:')
+		print(' D: input')
 		print(images)
 
 		if channel_first:
-			print('channel first: TRUE')
 			output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
 		else:
-			print('channel first: FALSE')
 			output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
 
-		print('Input for discriminator, after reshape:')
-		print(images)
+		print(' D: channel reshape')
+		print(output)
 
 		# ----- LoopLayers, Conv, Leaky ----- #
 		for i in range(n_conv_layer):
-			print('iter D: ', i, ' - tot filters: ', n_filters*DIM, ' - n_filters: ',n_filters)
+			print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d(output,
 			                       filters=n_filters*DIM,
@@ -269,19 +237,18 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			                       strides=strides,
 			                       padding='same')
 
-			print('output after conv2d: ')
 			print(output)
 
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters*2)
 
 		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters/2) * DIM)])
-		print('output reshaped for dens layer: ')
+		print(' D: reshape linear layer')
 		print(output)
 
 		# ----- Layer4, Dense, Linear ----- #
 		output = layers.dense(output, units=num_labels+1)
-		print('Discriminator output size:')
+		print(' D: dense layer output')
 		print(output)
 
 	scores_out = tf.identity(output[:, :1], name='scores_out')
@@ -327,7 +294,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
 
 	print('----------------- G: TEST SAMPLES    -----------------')
-
 	test_samples = generator(num_labels, test_input, reuse=True)
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
@@ -375,6 +341,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			print('----------------- D: DISC REAL SCORE -----------------')
 			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
+
 			print('----------------- D: DISC FAKE SCORE -----------------')
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
@@ -433,6 +400,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	                                                 beta2=0.9).minimize(discriminator_loss_list, var_list=d_vars)
 
 	# ------------------------------------ Train ---------------------------------------------- #
+	print(' - - - - - TRAIN - - - - - ')
 	# with tf.Session() as session:
 
 	# restore BATCH_SIZE
@@ -456,7 +424,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	for epoch in range(num_epochs):
 
 		start_time = time.time()
-		print("epoch: ", epoch)
+		print(" ----------> epoch: ", epoch)
 		np.random.shuffle(indices)
 		X_train = X_train[indices]
 		y_train = y_train[indices]
@@ -516,7 +484,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		generate_images(generated_img, epoch)
 
-		print("cycle time: ", time.time() - start_time, "total time: ", time.time() - init_time)
+		print(" cycle time: ", time.time() - start_time, " - total time: ", time.time() - init_time)
+		print(' gen cost  = ', np.mean(generator_history[-num_macro_batches:]))
+		print(' disc cost = ', np.mean(discriminator_history[-num_macro_batches:]))
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
