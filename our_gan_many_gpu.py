@@ -290,11 +290,13 @@ y_train = y_hot
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
-	label_weights = tf.placeholder(tf.float32, shape=())
+	# TEST SAMPLE GENERATION SESSION
 	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
-
 	print('----------------- G: TEST SAMPLES    -----------------')
 	test_samples = generator(num_labels, test_input, reuse=True)
+
+	# TRAINING SESSION
+	label_weights = tf.placeholder(tf.float32, shape=())
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
@@ -314,7 +316,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# device = DEVICE[i]
 		# real_data_conv = split_real_data_conv[i]
 
-		print('GPU: device_index: ', device_index )
+		print('GPU device_index: ', device_index )
 
 		# choose what GPU
 		with tf.device(device):
@@ -345,7 +347,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			print('----------------- D: DISC FAKE SCORE -----------------')
 			disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
 
-			print('graph: DONE')
 			# ---------------------------------- Losses ------------------------------------ #
 
 			# ----- Gen Loss ----- #
@@ -356,6 +357,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# labels
 			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 			                                                               logits=disc_fake_labels)
+			# total gen loss
 			generator_loss = gen_wasserstein_loss + labels_penalty_fakes * label_weights
 
 			# ----- Disc Loss ----- #
@@ -379,7 +381,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# sum losses
 			fake_labels_weight = 0.1
-			discriminator_loss = disc_wasserstein_loss + fake_labels_weight * labels_penalty_fakes * label_weights + labels_penalty_real * label_weights + gradient_penalty
+			discriminator_loss = disc_wasserstein_loss + \
+			                     (fake_labels_weight * labels_penalty_fakes + labels_penalty_real) * label_weights + \
+			                     gradient_penalty
 
 			generator_loss_list.append(generator_loss)
 			discriminator_loss_list.append(discriminator_loss)
@@ -469,9 +473,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                              generator_noise), axis=1)
 			gen_cost, _ = session.run([generator_loss,
 			                           generator_optimizer],
-			                          feed_dict={all_input_generator: generator_labels_with_noise,
-			                                     all_real_labels: fake_labels_onehot,
-			                                     label_weights: labels_incremental_weight})
+			                           feed_dict={all_input_generator: generator_labels_with_noise,
+			                                      all_real_labels: fake_labels_onehot,
+			                                      label_weights: labels_incremental_weight})
 			generator_history.append(gen_cost)
 		# END FOR MACRO BATCHES
 
@@ -481,8 +485,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise,
-		                                       label_weights: labels_incremental_weight})
-
+		                                       label_weights: labels_incremental_weight}) # <-- useless?
+		# print img
 		generate_images(generated_img, epoch)
 
 		print(" cycle time: ", time.time() - start_time, " - total time: ", time.time() - init_time)
@@ -492,13 +496,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
 			plt.figure()
-			gen_line = plt.plot(generator_history, label='GEN')
 			disc_line = plt.plot(discriminator_history, label='DISC')
+			gen_line = plt.plot(generator_history, label='GEN')
 			plt.legend()
 			plt.savefig("all_losses.png")
 
 			if always_show_fig:
-				plt.show()
+				plt.show() # it works only in interactive mode
 
 			loss_file = open('gen_loss.txt', 'w')
 			for item in generator_history:
