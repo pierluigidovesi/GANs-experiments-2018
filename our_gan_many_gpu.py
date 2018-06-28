@@ -296,9 +296,10 @@ y_train = y_hot
 
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
+
 	# TEST SAMPLE GENERATION SESSION
-	test_input = tf.placeholder(tf.float32, shape=[num_labels, latent_dim + num_labels])
 	print('----------------- G: TEST SAMPLES    -----------------')
+	test_input = tf.placeholder(tf.float32, shape=[sample_repetitions * num_labels, latent_dim + num_labels])
 	test_samples = generator(num_labels, test_input, reuse=True)
 
 	# TRAINING SESSION
@@ -317,7 +318,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
 
-	# for device_index, (device, one_device_real_data, one_device_real_labels, one_device_input_generator) in enumerate(zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
+	# for device_index, (device, one_device_real_data, one_device_real_labels, one_device_input_generator)
+	# in enumerate(zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
 
 	for device_index, (device, real_samples, labels, input_generator) in enumerate(
 			zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
@@ -466,15 +468,15 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				noise = noise_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
 
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
-				disc_cost, dw_cost, d_gradpen, d_lab_cost = session.run([discriminator_loss,
-				                                                         disc_wasserstein_loss,
-				                                                         gradient_penalty,
-				                                                         disc_labels_loss,
-				                                                         discriminator_optimizer],
-				                                                        feed_dict={all_input_generator: discriminator_labels_with_noise,
-				                                                                   all_real_data: img_samples,
-				                                                                   all_real_labels: img_labels,
-				                                                                   label_weights: labels_incremental_weight})
+				disc_cost, dw_cost, d_gradpen, d_lab_cost, _ = session.run([discriminator_loss,
+				                                                            disc_wasserstein_loss,
+				                                                            gradient_penalty,
+				                                                            disc_labels_loss,
+				                                                            discriminator_optimizer],
+				                                                            feed_dict={all_input_generator: discriminator_labels_with_noise,
+				                                                                       all_real_data: img_samples,
+				                                                                       all_real_labels: img_labels,
+				                                                                       label_weights: labels_incremental_weight})
 
 				d_cost_vector.append([disc_cost, dw_cost, d_gradpen, d_lab_cost])
 
@@ -488,13 +490,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			fake_labels_onehot[np.arange(BATCH_SIZE), fake_labels] = 1
 			generator_labels_with_noise = np.concatenate((fake_labels_onehot,
 			                                              generator_noise), axis=1)
-			gen_cost, gw_cost, g_lab_cost = session.run([generator_loss,
-			                                             gen_wasserstein_loss,
-			                                             gen_labels_loss,
-			                                             generator_optimizer],
-			                                            feed_dict={all_input_generator: generator_labels_with_noise,
-			                                                       all_real_labels: fake_labels_onehot,
-			                                                       label_weights: labels_incremental_weight})
+			gen_cost, gw_cost, g_lab_cost, _ = session.run([generator_loss,
+			                                                gen_wasserstein_loss,
+			                                                gen_labels_loss,
+			                                                generator_optimizer],
+			                                               feed_dict={all_input_generator: generator_labels_with_noise,
+			                                                          all_real_labels: fake_labels_onehot,
+			                                                          label_weights: labels_incremental_weight})
 			generator_history.append([gen_cost, gw_cost, g_lab_cost])
 		# END FOR MACRO BATCHES
 
