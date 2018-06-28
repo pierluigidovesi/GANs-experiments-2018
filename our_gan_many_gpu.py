@@ -27,7 +27,7 @@ cifar10_data = True
 num_epochs = 50
 BATCH_SIZE = 64
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
-disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 5  # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
 DIM = 64  # number of filters
 label_increment = 0.01
@@ -42,6 +42,7 @@ leakage = 0.01  # leaky constant
 N_GPU = 1
 
 # verbose
+sample_repetitions = 10
 always_get_loss = True
 always_show_fig = False
 
@@ -89,15 +90,17 @@ def generate_images(images, epoch):
 	# plt.figure()
 	plt.figure(figsize=(100, 10))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
-	for i in range(num_labels):
-		if channels > 1:
-			new_image = test_image_stack[i].reshape(resolution_image, resolution_image, channels)
-		else:
-			new_image = test_image_stack[i].reshape(resolution_image, resolution_image)
-		plt.subplot(1, num_labels, i + 1)
-		plt.axis("off")
-		plt.imshow(new_image)
-		plt.axis("off")
+
+	for j in range(sample_repetitions):
+		for i in range(num_labels):
+			if channels > 1:
+				new_image = test_image_stack[i].reshape(resolution_image, resolution_image, channels)
+			else:
+				new_image = test_image_stack[i].reshape(resolution_image, resolution_image)
+			plt.subplot(sample_repetitions, num_labels, j + i + 1)
+			plt.axis("off")
+			plt.imshow(new_image)
+			plt.axis("off")
 	plt.axis("off")
 	plt.savefig("epoch_" + str(epoch) + ".png")
 	if always_show_fig:
@@ -362,8 +365,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# labels
 			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 			                                                               logits=disc_fake_labels)
+			gen_labels_loss = labels_penalty_fakes * label_weights
+
 			# total gen loss
-			generator_loss = gen_wasserstein_loss + labels_penalty_fakes * label_weights
+			generator_loss = gen_wasserstein_loss + gen_labels_loss
 
 			# ----- Disc Loss ----- #
 
@@ -375,6 +380,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                                               logits=disc_fake_labels)
 			labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 			                                                              logits=disc_real_labels)
+			fake_labels_weight = 0.1  # this should be a placeholder
+
+			# tot labels loss
+			disc_labels_loss = (fake_labels_weight * labels_penalty_fakes + labels_penalty_real) * label_weights
 
 			# gradient penalty
 			alpha = tf.random_uniform(shape=[BATCH_SIZE, 1], minval=0., maxval=1.)
@@ -385,10 +394,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
 
 			# sum losses
-			fake_labels_weight = 0.1
-			discriminator_loss = disc_wasserstein_loss + \
-			                     (fake_labels_weight * labels_penalty_fakes + labels_penalty_real) * label_weights + \
-			                     gradient_penalty
+			discriminator_loss = disc_wasserstein_loss + disc_labels_loss + gradient_penalty
 
 			generator_loss_list.append(generator_loss)
 			discriminator_loss_list.append(discriminator_loss)
@@ -426,6 +432,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# num of batches
 	num_macro_batches = int((X_train.shape[0]) // macro_batches_size)
 	discriminator_history = []
+
 	generator_history = []
 
 	labels_incremental_weight = 0
@@ -445,7 +452,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			discriminator_macro_batches = X_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			labels_macro_batches = y_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			noise_macro_batches = np.random.rand(macro_batches_size, latent_dim)
-			disc_cost_sum = 0
+			d_cost_vector = []
 
 			if not im_tqdm and i % (num_macro_batches // 10) == 0:
 				print(100 * i // num_macro_batches, '%')
@@ -459,15 +466,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				noise = noise_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
 
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
-				disc_cost, _ = session.run([discriminator_loss,
-				                            discriminator_optimizer],
-				                           feed_dict={all_input_generator: discriminator_labels_with_noise,
-				                                      all_real_data: img_samples,
-				                                      all_real_labels: img_labels,
-				                                      label_weights: labels_incremental_weight})
-				disc_cost_sum += disc_cost
+				disc_cost, dw_cost, d_gradpen, d_lab_cost = session.run([discriminator_loss,
+				                                                         disc_wasserstein_loss,
+				                                                         gradient_penalty,
+				                                                         disc_labels_loss,
+				                                                         discriminator_optimizer],
+				                                                        feed_dict={all_input_generator: discriminator_labels_with_noise,
+				                                                                   all_real_data: img_samples,
+				                                                                   all_real_labels: img_labels,
+				                                                                   label_weights: labels_incremental_weight})
+
+				d_cost_vector.append([disc_cost, dw_cost, d_gradpen, d_lab_cost])
+
 			# END FOR MICRO BATCHES
-			discriminator_history.append(np.mean(disc_cost_sum))
+			discriminator_history.append(np.mean(d_cost_vector, 0))
 
 			# GENERATOR TRAINING
 			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
@@ -476,22 +488,22 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			fake_labels_onehot[np.arange(BATCH_SIZE), fake_labels] = 1
 			generator_labels_with_noise = np.concatenate((fake_labels_onehot,
 			                                              generator_noise), axis=1)
-			gen_cost, _ = session.run([generator_loss,
-			                           generator_optimizer],
-			                          feed_dict={all_input_generator: generator_labels_with_noise,
-			                                     all_real_labels: fake_labels_onehot,
-			                                     label_weights: labels_incremental_weight})
-			generator_history.append(gen_cost)
+			gen_cost, gw_cost, g_lab_cost = session.run([generator_loss,
+			                                             gen_wasserstein_loss,
+			                                             gen_labels_loss,
+			                                             generator_optimizer],
+			                                            feed_dict={all_input_generator: generator_labels_with_noise,
+			                                                       all_real_labels: fake_labels_onehot,
+			                                                       label_weights: labels_incremental_weight})
+			generator_history.append([gen_cost, gw_cost, g_lab_cost])
 		# END FOR MACRO BATCHES
 
-		test_noise = np.random.rand(num_labels, latent_dim)
-		sorted_labels = np.eye(num_labels)
+		test_noise = np.random.rand(num_labels * sample_repetitions, latent_dim)
+		sorted_labels = np.tile(np.eye(num_labels), sample_repetitions).transpose()
 		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
 
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
-
-		# ,label_weights: labels_incremental_weight}) # <-- useless?
 
 		# print img
 		generate_images(generated_img, epoch)
@@ -502,20 +514,36 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
+
 			plt.figure()
-			disc_line = plt.plot(discriminator_history, label='DISC')
-			gen_line = plt.plot(generator_history, label='GEN')
+			disc_line = plt.plot(discriminator_history[:][0], label='DISC')
+			gen_line = plt.plot(generator_history[:][0], label='GEN')
 			plt.legend()
-			plt.savefig("all_losses.png")
+			plt.savefig("GD_losses.png")
+
+			plt.figure()
+			disc_sum  = plt.plot(discriminator_history[:][0], label='ALL')
+			disc_w    = plt.plot(discriminator_history[:][1], label='WASS')
+			disc_grad = plt.plot(discriminator_history[:][2], label='GRAD')
+			disc_lab  = plt.plot(discriminator_history[:][3], label='LAB')
+			plt.legend()
+			plt.savefig("D_losses.png")
+
+			plt.figure()
+			gen_sum = plt.plot(generator_history[:][0], label='ALL')
+			gen_w   = plt.plot(generator_history[:][1], label='WASS')
+			gen_lab = plt.plot(generator_history[:][2], label='LAB')
+			plt.legend()
+			plt.savefig("G_losses.png")
 
 			if always_show_fig:
 				plt.show()  # it works only in interactive mode
 
-			loss_file = open('gen_loss.txt', 'w')
+			loss_file = open('gen_losses.txt', 'w')
 			for item in generator_history:
 				loss_file.write("%s\n" % item)
 
-			loss_file = open('disc_loss.txt', 'w')
+			loss_file = open('disc_losses.txt', 'w')
 			for item in discriminator_history:
 				loss_file.write("%s\n" % item)
 
