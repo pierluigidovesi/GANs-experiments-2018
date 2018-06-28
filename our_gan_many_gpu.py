@@ -509,8 +509,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		generate_images(generated_img, epoch)
 
 		print(' cycle time: ', time.time() - start_time, " - total time: ", time.time() - init_time)
-		print(' gen cost  = ', np.mean(generator_history[-num_macro_batches:]))
-		print(' disc cost = ', np.mean(discriminator_history[-num_macro_batches:]))
+		print(' gen cost  = ', np.mean(generator_history[-num_macro_batches:][0]))
+		print(' disc cost = ', np.mean(discriminator_history[-num_macro_batches:][0]))
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
