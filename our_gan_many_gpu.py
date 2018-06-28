@@ -67,7 +67,7 @@ if cifar10_data:
 	resolution_image = 32
 	num_labels = 10
 	channels = 3
-	channel_first = False
+	channel_first = True
 
 print('resolution image: ', resolution_image)
 print('channels:         ', channels)
