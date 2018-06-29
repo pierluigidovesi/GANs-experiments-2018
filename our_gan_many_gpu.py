@@ -98,7 +98,8 @@ def generate_images(images, epoch):
 			else:
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
 
-			plt.subplot(sample_repetitions, num_labels, j + i + 1)
+			print(i+j*num_labels)
+			plt.subplot(sample_repetitions, num_labels, 1 + i + j*num_labels)
 			plt.axis("off")
 	plt.imshow(new_image)
 	plt.axis("off")
@@ -510,7 +511,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# print img
 		generate_images(generated_img, epoch)
 
-
 		print(' cycle time: ', time.time() - start_time, " - total time: ", time.time() - init_time)
 		print(' gen cost  = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
 		print(' disc cost = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
@@ -519,23 +519,23 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# SAVE & PRINT LOSSES
 
 			plt.figure()
-			disc_line = plt.plot(discriminator_history[:][0], label='DISC')
-			gen_line = plt.plot(generator_history[:][0], label='GEN')
+			disc_line = plt.plot([item[0] for item in discriminator_history], label='DISC')
+			gen_line  = plt.plot([item[0] for item in generator_history], label='GEN')
 			plt.legend()
 			plt.savefig("GD_losses.png")
 
 			plt.figure()
-			disc_sum  = plt.plot(discriminator_history[:][0], label='ALL')
-			disc_w    = plt.plot(discriminator_history[:][1], label='WASS')
-			disc_grad = plt.plot(discriminator_history[:][2], label='GRAD')
-			disc_lab  = plt.plot(discriminator_history[:][3], label='LAB')
+			disc_sum  = plt.plot([item[0] for item in discriminator_history], label='ALL')
+			disc_w    = plt.plot([item[1] for item in discriminator_history], label='WASS')
+			disc_grad = plt.plot([item[2] for item in discriminator_history], label='GRAD')
+			disc_lab  = plt.plot([item[3] for item in discriminator_history], label='LAB')
 			plt.legend()
 			plt.savefig("D_losses.png")
 
 			plt.figure()
-			gen_sum = plt.plot(generator_history[:][0], label='ALL')
-			gen_w   = plt.plot(generator_history[:][1], label='WASS')
-			gen_lab = plt.plot(generator_history[:][2], label='LAB')
+			gen_sum = plt.plot([item[0] for item in generator_history], label='ALL')
+			gen_w   = plt.plot([item[1] for item in generator_history], label='WASS')
+			gen_lab = plt.plot([item[2] for item in generator_history], label='LAB')
 			plt.legend()
 			plt.savefig("G_losses.png")
 
