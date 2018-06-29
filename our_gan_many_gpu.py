@@ -87,7 +87,7 @@ DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
-	# plt.figure()
+
 	plt.figure(figsize=(10*num_labels, 10*sample_repetitions))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
 
@@ -98,11 +98,10 @@ def generate_images(images, epoch):
 			else:
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
 
-			#print(i+j*num_labels)
 			plt.subplot(sample_repetitions, num_labels, 1 + i + j*num_labels)
 			plt.imshow(new_image)
 			plt.axis("off")
-	#plt.imshow(new_image)
+
 	plt.axis("off")
 	plt.savefig("epoch_" + str(epoch) + ".png")
 	if always_show_fig:
@@ -116,6 +115,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :return:                  generated images
     """
 
+	# CONV "THEORY"
 	# number conv layer number of time we need to duplicate image
 	# starting from size_init to image_resolution --> if image_res 2 -> 1 layer, 4 -> 2layer ...
 	# then log2
@@ -132,8 +132,9 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	# image res 28, size init 4 --> 28/4 = 7 (wrong, but) --> log2 7 = 2.8 (ceil!)--> 3 ok
 	# n_filter = 4 (POSSIBLE REDUCTION IS SPECIFIED)
 
-	# (if image size is a power of 2 --> you can n_filter = image_res/n_filter)
+	# (if image size is a power of 2 --> you can: n_filter = image_res/n_filter)
 
+	# get number of layers and filters
 	n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
 	n_filters = int(2 ** (n_conv_layer - 1))
 
@@ -141,7 +142,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	print(' G: n-filters generator:    ', n_filters)
 
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
-		# get variables of discriminator
+																# get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
 		print(' G: units dense generator: ', channels * (size_init * size_init) * (n_filters * DIM))
 
@@ -161,7 +162,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		else:
 			# size: 7 x 7 x 128
 			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
-			bn_axis = -1  # [0, 1, 2]  # last
+			bn_axis = -1  # [0, 1, 2] # last
 		print(' G: channel reshape:')
 		print(output)
 
@@ -224,7 +225,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 	print(' D: n-filters discriminator:    ', n_filters)
 
 	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
-		# get variables of generator
+																	# get variables of generator
 		print(' D: input')
 		print(images)
 
@@ -237,6 +238,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		print(output)
 
 		# ----- LoopLayers, Conv, Leaky ----- #
+
 		for i in range(n_conv_layer):
 			print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
 
@@ -265,7 +267,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 	return scores_out, labels_out
 
 
-def get_trainable_variables():
+def get_trainable_variables(): # used in optimizer/minimize (training)
 	"""
     :return: trainable variables (d_vars, g_vars)
     """
@@ -276,6 +278,8 @@ def get_trainable_variables():
 
 
 # -------------------------------- Load Dataset ---------------------------------- #
+
+# get data
 if mnist_data:
 	(X_train, y_train), (X_test, y_test) = mnist.load_data()
 if fashion_mnist_data:
@@ -283,11 +287,13 @@ if fashion_mnist_data:
 if cifar10_data:
 	(X_train, y_train), (X_test, y_test) = cifar10.load_data()
 
+# reshape and merge train and test data
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
 
+# merge and one hot train and test labels
 y_train = np.concatenate((y_train, y_test), axis=0)
 y_hot = np.zeros((y_train.shape[0], num_labels))
 b = np.arange(y_train.shape[0])
@@ -311,18 +317,22 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
 	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
+	# split over GPUs
 	binder_real_data = tf.split(all_real_data, len(DEVICES))
 	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
 	binder_input_generator = tf.split(all_input_generator, len(DEVICES))
 
+	# list used for mean over GPUs
 	generator_loss_list = []
 	discriminator_loss_list = []
 
+	# split BATCH_SIZE
 	BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
 
 	# for device_index, (device, one_device_real_data, one_device_real_labels, one_device_input_generator)
 	# in enumerate(zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
 
+	# for each GPU, select relative sub-batch of data
 	for device_index, (device, real_samples, labels, input_generator) in enumerate(
 			zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
 		# device_index is easy incremental int
@@ -333,6 +343,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		# choose what GPU
 		with tf.device(device):
+
+			# useless:
 			# --------------------------------- Placeholders ------------------------------- #
 
 			# GENERATOR
@@ -420,7 +432,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	                                                 beta2=0.9).minimize(discriminator_loss_list, var_list=d_vars)
 
 	# ------------------------------------ Train ---------------------------------------------- #
-	print(' - - - - - TRAIN - - - - - ')
+	print(' - - - - - - - - - - TRAIN - - - - - - - - - - ')
 	# with tf.Session() as session:
 
 	# restore BATCH_SIZE
@@ -470,6 +482,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# init disc cost vector (to be used in disc_iters)
 			d_cost_vector = []
 
+			# verbose when tqdm OFF
 			if not im_tqdm and i % (num_macro_batches // 10) == 0:
 				print(100 * i // num_macro_batches, '%')
 
@@ -580,7 +593,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				loss_file.write("%s\n" % item)
 
 		# increment/saturate label weight
-		labels_incremental_weight += label_increment # now 0
+		labels_incremental_weight += label_increment  # now 0
 		labels_incremental_weight = max(labels_incremental_weight, 1)
 
 		print(' cycle time: ', time.time() - start_time, " - total time: ", time.time() - init_time)
