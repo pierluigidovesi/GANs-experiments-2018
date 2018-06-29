@@ -27,7 +27,7 @@ cifar10_data = True
 num_epochs = 50
 BATCH_SIZE = 64
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
-disc_iters = 5  # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
 DIM = 64  # number of filters
 label_increment = 0.01
@@ -35,7 +35,7 @@ label_increment = 0.01
 # CONV Parameters
 kernel_size = (5, 5)
 strides = 2
-size_init = 4
+size_init = 8
 leakage = 0.01  # leaky constant
 
 # number of GPUs
@@ -100,8 +100,9 @@ def generate_images(images, epoch):
 
 			print(i+j*num_labels)
 			plt.subplot(sample_repetitions, num_labels, 1 + i + j*num_labels)
+			plt.imshow(new_image)
 			plt.axis("off")
-	plt.imshow(new_image)
+	#plt.imshow(new_image)
 	plt.axis("off")
 	plt.savefig("epoch_" + str(epoch) + ".png")
 	if always_show_fig:
@@ -519,23 +520,23 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# SAVE & PRINT LOSSES
 
 			plt.figure()
-			disc_line = plt.plot([item[0] for item in discriminator_history], label='DISC')
-			gen_line  = plt.plot([item[0] for item in generator_history], label='GEN')
+			disc_line = plt.plot(np.array([item[0] for item in discriminator_history]), label='DISC')
+			gen_line  = plt.plot(np.array([item[0] for item in generator_history]), label='GEN')
 			plt.legend()
 			plt.savefig("GD_losses.png")
 
 			plt.figure()
-			disc_sum  = plt.plot([item[0] for item in discriminator_history], label='ALL')
-			disc_w    = plt.plot([item[1] for item in discriminator_history], label='WASS')
-			disc_grad = plt.plot([item[2] for item in discriminator_history], label='GRAD')
-			disc_lab  = plt.plot([item[3] for item in discriminator_history], label='LAB')
+			disc_sum  = plt.plot(np.array([item[0] for item in discriminator_history]), label='ALL')
+			disc_w    = plt.plot(np.array([item[1] for item in discriminator_history]), label='WASS')
+			disc_grad = plt.plot(np.array([item[2] for item in discriminator_history]), label='GRAD')
+			disc_lab  = plt.plot(np.array([item[3] for item in discriminator_history]), label='LAB')
 			plt.legend()
 			plt.savefig("D_losses.png")
 
 			plt.figure()
-			gen_sum = plt.plot([item[0] for item in generator_history], label='ALL')
-			gen_w   = plt.plot([item[1] for item in generator_history], label='WASS')
-			gen_lab = plt.plot([item[2] for item in generator_history], label='LAB')
+			gen_sum = plt.plot(np.array([item[0] for item in generator_history]), label='ALL')
+			gen_w   = plt.plot(np.array([item[1] for item in generator_history]), label='WASS')
+			gen_lab = plt.plot(np.array([item[2] for item in generator_history]), label='LAB')
 			plt.legend()
 			plt.savefig("G_losses.png")
 
