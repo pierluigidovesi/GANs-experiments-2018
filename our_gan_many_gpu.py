@@ -17,9 +17,9 @@ im_tqdm = True
 # --------- SETTINGS ---------
 
 # dataset
-mnist_data = True
+mnist_data = False
 fashion_mnist_data = False
-cifar10_data = False
+cifar10_data = True
 
 # gan architecture
 num_epochs = 50
