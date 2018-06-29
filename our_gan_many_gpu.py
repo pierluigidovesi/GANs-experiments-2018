@@ -480,7 +480,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                                                                       all_real_labels: img_labels,
 				                                                                       label_weights: labels_incremental_weight})
 
-				d_cost_vector.append([disc_cost, dw_cost, d_gradpen, d_lab_cost])
+				d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mena(d_lab_cost)])
 
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(d_cost_vector, 0))
@@ -499,7 +499,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                               feed_dict={all_input_generator: generator_labels_with_noise,
 			                                                          all_real_labels: fake_labels_onehot,
 			                                                          label_weights: labels_incremental_weight})
-			generator_history.append([gen_cost, gw_cost, g_lab_cost])
+			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
 		# END FOR MACRO BATCHES
 
 		test_noise = np.random.rand(num_labels * sample_repetitions, latent_dim)
@@ -515,9 +515,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
 
-			print(disc_cost)
-			print(len(d_cost_vector))
-			print(len(discriminator_history))
+			print('len(gen_cost) ', len(gen_cost))
+			print('len(disc_cost) ', len(disc_cost))
+			print('len(d_cost_vector)', len(d_cost_vector))
+			print('len(discriminator_history)', len(discriminator_history))
 
 			print('shape d_h0:', np.shape(np.asarray([item[0] for item in discriminator_history])))
 			plt.figure()
