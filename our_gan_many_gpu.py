@@ -12,9 +12,7 @@ matplotlib.rcParams['backend'] = "Qt4Agg"
 # import sklearn.datasets
 from tqdm import tqdm
 
-
 im_tqdm = True
-sum_weight = 0
 
 # --------- SETTINGS ---------
 
@@ -344,23 +342,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# choose what GPU
 		with tf.device(device):
 
-			# useless:
-			# --------------------------------- Placeholders ------------------------------- #
-
-			# GENERATOR
-			# ----- Noise + Labels(G) ----- #
-			# input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
-			# input_generator = one_device_input_generator
-
-			# DISCRIMINATOR
-			# ------ Real Samples(D) ------ #
-			# real_samples = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
-			# real_samples = tf.cast(one_device_real_data, tf.float32)
-
-			# -------- Labels(D) ---------- #
-			# labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
-			# labels = one_device_real_labels
-
 			# ----------------------------------- Outputs ----------------------------------- #
 			print('----------------- G: FAKE SAMPLES    -----------------')
 			fake_samples = generator(BATCH_SIZE, input_generator, reuse=True)
@@ -511,8 +492,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                                                                      all_real_labels: img_labels,
 				                                                                      label_weights: labels_incremental_weight})
 
-				sum_weight += abs(labels_incremental_weight)
-
 				# append losses means (each loss has BATCH_SIZE element)
 				d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mean(d_lab_cost)])
 
@@ -540,7 +519,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                               feed_dict={all_input_generator: generator_labels_with_noise,
 			                                                          all_real_labels: fake_labels_onehot,
 			                                                          label_weights: labels_incremental_weight})
-			sum_weight += abs(labels_incremental_weight)
 
 			# append directly in gen loss history (with mean beacuse of BATCH_SIZE)
 			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
@@ -599,12 +577,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		# increment/saturate label weight
 		labels_incremental_weight += label_increment  # now 0
-		labels_incremental_weight = max(labels_incremental_weight, 1)
+		labels_incremental_weight = min(labels_incremental_weight, 1)
 
 		print(' cycle time:  ', time.time() - start_time, " - total time: ", time.time() - init_time)
 		print(' gen cost   = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
 		print(' disc cost  = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
-		print(' sum weight = ', sum_weight)
 
 	# END FOR EPOCHS
 # END SESSION
