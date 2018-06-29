@@ -10,9 +10,11 @@ import matplotlib.pyplot as plt
 matplotlib.get_backend()
 matplotlib.rcParams['backend'] = "Qt4Agg"
 # import sklearn.datasets
-from tqdm import tqdm
 
-im_tqdm = True
+try:
+	from tqdm import tqdm
+except:
+	im_tqdm = True
 
 # --------- SETTINGS ---------
 
