@@ -94,13 +94,13 @@ def generate_images(images, epoch):
 	for j in range(sample_repetitions):
 		for i in range(num_labels):
 			if channels > 1:
-				new_image = test_image_stack[i].reshape(resolution_image, resolution_image, channels)
+				new_image = test_image_stack[i+j].reshape(resolution_image, resolution_image, channels)
 			else:
-				new_image = test_image_stack[i].reshape(resolution_image, resolution_image)
+				new_image = test_image_stack[i+j].reshape(resolution_image, resolution_image)
+
 			plt.subplot(sample_repetitions, num_labels, j + i + 1)
 			plt.axis("off")
-			plt.imshow(new_image)
-			plt.axis("off")
+	plt.imshow(new_image)
 	plt.axis("off")
 	plt.savefig("epoch_" + str(epoch) + ".png")
 	if always_show_fig:
@@ -510,9 +510,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# print img
 		generate_images(generated_img, epoch)
 
+
 		print(' cycle time: ', time.time() - start_time, " - total time: ", time.time() - init_time)
-		print(' gen cost  = ', np.mean(generator_history[-num_macro_batches:][0]))
-		print(' disc cost = ', np.mean(discriminator_history[-num_macro_batches:][0]))
+		print(' gen cost  = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
+		print(' disc cost = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
