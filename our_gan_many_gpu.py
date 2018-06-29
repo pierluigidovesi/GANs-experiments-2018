@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 
 im_tqdm = True
-
+sum_weight = 0
 
 # --------- SETTINGS ---------
 
@@ -179,8 +179,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
 				print(' G: cut mnist, iteration: ', i)
 				print(output)
 
-			print(' G: conv2d_transpose iter', i, ' - tot filters: ', n_filters * DIM * channels, ' - n_filters: ',
-			      n_filters)
+			print(' G: conv2d_transpose iter', i, ' - tot filters: ',
+			      n_filters * DIM * channels, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d_transpose(output,
 			                                 filters=n_filters * DIM * channels,
@@ -510,6 +510,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                                                                      all_real_data: img_samples,
 				                                                                      all_real_labels: img_labels,
 				                                                                      label_weights: labels_incremental_weight})
+
+				sum_weight += abs(labels_incremental_weight)
+
 				# append losses means (each loss has BATCH_SIZE element)
 				d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mean(d_lab_cost)])
 
@@ -537,6 +540,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                               feed_dict={all_input_generator: generator_labels_with_noise,
 			                                                          all_real_labels: fake_labels_onehot,
 			                                                          label_weights: labels_incremental_weight})
+			sum_weight += abs(labels_incremental_weight)
+
 			# append directly in gen loss history (with mean beacuse of BATCH_SIZE)
 			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
 		# END FOR MACRO BATCHES
@@ -596,9 +601,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		labels_incremental_weight += label_increment  # now 0
 		labels_incremental_weight = max(labels_incremental_weight, 1)
 
-		print(' cycle time: ', time.time() - start_time, " - total time: ", time.time() - init_time)
-		print(' gen cost  = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
-		print(' disc cost = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
+		print(' cycle time:  ', time.time() - start_time, " - total time: ", time.time() - init_time)
+		print(' gen cost   = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
+		print(' disc cost  = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
+		print(' sum weight = ', sum_weight)
 
 	# END FOR EPOCHS
 # END SESSION
