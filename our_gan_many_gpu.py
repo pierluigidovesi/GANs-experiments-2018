@@ -27,7 +27,7 @@ cifar10_data = True
 num_epochs = 50
 BATCH_SIZE = 64
 GRADIENT_PENALTY_WEIGHT = 10  # As per the paper
-disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 5  # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
 DIM = 64  # number of filters
 label_increment = 0
@@ -35,14 +35,14 @@ label_increment = 0
 # CONV Parameters
 kernel_size = (5, 5)
 strides = 2
-size_init = 8
+size_init = 4
 leakage = 0.01  # leaky constant
 
 # number of GPUs
 N_GPU = 1
 
 # verbose
-sample_repetitions = 10
+sample_repetitions = 1
 always_get_loss = True
 always_show_fig = False
 
@@ -384,7 +384,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                                               logits=disc_fake_labels)
 			labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
 			                                                              logits=disc_real_labels)
-			fake_labels_weight = 0.1  # this should be a placeholder
+			fake_labels_weight = 0  # this should be a placeholder
 
 			# tot labels loss
 			disc_labels_loss = (fake_labels_weight * labels_penalty_fakes + labels_penalty_real) * label_weights
@@ -515,11 +515,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
 
-			print('len(gen_cost) ', len(gen_cost))
-			print('len(disc_cost) ', len(disc_cost))
-			print('len(d_cost_vector)', len(d_cost_vector))
-			print('len(generator_history)', len(generator_history))
-			print('len(discriminator_history)', len(discriminator_history))
+			#print('len(gen_cost) ', len(gen_cost))
+			#print('len(disc_cost) ', len(disc_cost))
+			#print('len(d_cost_vector)', len(d_cost_vector))
+			#print('len(generator_history)', len(generator_history))
+			#print('len(discriminator_history)', len(discriminator_history))
 
 			print('shape d_h0:', np.shape(np.asarray([item[0] for item in discriminator_history])))
 			plt.figure()
