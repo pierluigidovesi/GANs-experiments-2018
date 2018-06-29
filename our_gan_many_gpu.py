@@ -518,6 +518,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			print('len(gen_cost) ', len(gen_cost))
 			print('len(disc_cost) ', len(disc_cost))
 			print('len(d_cost_vector)', len(d_cost_vector))
+			print('len(generator_history)', len(generator_history))
 			print('len(discriminator_history)', len(discriminator_history))
 
 			print('shape d_h0:', np.shape(np.asarray([item[0] for item in discriminator_history])))
