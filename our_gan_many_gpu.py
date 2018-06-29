@@ -515,6 +515,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
 
+			print('shape d_h0:', np.shape(np.asarray([item[0] for item in discriminator_history])))
 			plt.figure()
 			disc_line = plt.plot(np.asarray([item[0] for item in discriminator_history]), label='DISC')
 			gen_line  = plt.plot(np.asarray([item[0] for item in generator_history]), label='GEN')
