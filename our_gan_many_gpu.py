@@ -98,7 +98,7 @@ def generate_images(images, epoch):
 			else:
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
 
-			print(i+j*num_labels)
+			#print(i+j*num_labels)
 			plt.subplot(sample_repetitions, num_labels, 1 + i + j*num_labels)
 			plt.imshow(new_image)
 			plt.axis("off")
@@ -512,16 +512,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# print img
 		generate_images(generated_img, epoch)
 
-		print(' cycle time: ', time.time() - start_time, " - total time: ", time.time() - init_time)
-		print(' gen cost  = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
-		print(' disc cost = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
-
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
 
 			plt.figure()
-			disc_line = plt.plot(np.array([item[0] for item in discriminator_history]), label='DISC')
-			gen_line  = plt.plot(np.array([item[0] for item in generator_history]), label='GEN')
+			disc_line = plt.plot(np.asarray([item[0] for item in discriminator_history]), label='DISC')
+			gen_line  = plt.plot(np.asarray([item[0] for item in generator_history]), label='GEN')
 			plt.legend()
 			plt.savefig("GD_losses.png")
 
@@ -554,6 +550,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# labels weight settings
 		labels_incremental_weight += label_increment
 		labels_incremental_weight = max(labels_incremental_weight, 1)
+
+		print(' cycle time: ', time.time() - start_time, " - total time: ", time.time() - init_time)
+		print(' gen cost  = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
+		print(' disc cost = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
 
 	# END FOR EPOCHS
 # END SESSION
