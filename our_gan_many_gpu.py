@@ -480,7 +480,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                                                                       all_real_labels: img_labels,
 				                                                                       label_weights: labels_incremental_weight})
 
-				d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mena(d_lab_cost)])
+				d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mean(d_lab_cost)])
 
 			# END FOR MICRO BATCHES
 			discriminator_history.append(np.mean(d_cost_vector, 0))
