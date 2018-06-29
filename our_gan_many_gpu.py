@@ -88,15 +88,15 @@ def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
 	# plt.figure()
-	plt.figure(figsize=(100, 10))
+	plt.figure(figsize=(10*num_labels, 10*sample_repetitions))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
 
 	for j in range(sample_repetitions):
 		for i in range(num_labels):
 			if channels > 1:
-				new_image = test_image_stack[i+j].reshape(resolution_image, resolution_image, channels)
+				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image, channels)
 			else:
-				new_image = test_image_stack[i+j].reshape(resolution_image, resolution_image)
+				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
 
 			plt.subplot(sample_repetitions, num_labels, j + i + 1)
 			plt.axis("off")
