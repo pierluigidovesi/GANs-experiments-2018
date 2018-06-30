@@ -13,8 +13,9 @@ matplotlib.rcParams['backend'] = "Qt4Agg"
 
 try:
 	from tqdm import tqdm
-except:
 	im_tqdm = True
+except:
+	im_tqdm = False
 
 # --------- SETTINGS ---------
 
