@@ -25,9 +25,9 @@ fashion_mnist_data = False
 cifar10_data = True
 
 # gan architecture
-num_epochs = 50
+num_epochs = 30
 BATCH_SIZE = 64
-GRADIENT_PENALTY_WEIGHT = 10  # As the paper
+GRADIENT_PENALTY_WEIGHT = 20  # in the paper 10
 disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
 DIM = 64  # number of filters
@@ -36,7 +36,7 @@ label_increment = 0
 # CONV Parameters
 kernel_size = (5, 5)
 strides = 2
-size_init = 4
+size_init = 2 # in the paper 4
 leakage = 0.01  # leaky constant
 
 # number of GPUs
