@@ -25,7 +25,7 @@ fashion_mnist_data = False
 cifar10_data = True
 
 # gan architecture
-num_epochs = 75
+num_epochs = 50
 BATCH_SIZE = 64
 GRADIENT_PENALTY_WEIGHT = 10 # in the paper 10
 disc_iters = 5  # Number of discriminator updates each generator update. The paper uses 5.
