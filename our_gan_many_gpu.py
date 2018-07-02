@@ -24,11 +24,10 @@ mnist_data = False
 fashion_mnist_data = False
 cifar10_data = True
 
-channel_first_disc = True
-
 # gan architecture
 num_epochs = 50
 BATCH_SIZE = 64
+<<<<<<< HEAD
 <<<<<<< HEAD
 GRADIENT_PENALTY_WEIGHT = 10  # in the paper 10
 disc_iters = 5                # Number of discriminator updates each generator update. The paper uses 5.
@@ -36,18 +35,26 @@ disc_iters = 5                # Number of discriminator updates each generator u
 GRADIENT_PENALTY_WEIGHT = 10 # in the paper 10
 disc_iters = 5  # Number of discriminator updates each generator update. The paper uses 5.
 >>>>>>> 7e34c76fa93ff92daba43087079125716c4df04c
+=======
+GRADIENT_PENALTY_WEIGHT = 20  # in the paper 10
+disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
+>>>>>>> parent of e0dfe89... chennel first
 latent_dim = 128
-DIM = 64                      # number of filters
+DIM = 64  # number of filters
 label_increment = 0
 
 # CONV Parameters
 kernel_size = (5, 5)
 strides = 2
 <<<<<<< HEAD
+<<<<<<< HEAD
 size_init = 4   # in the paper 4
 =======
 size_init = 8 # in the paper 4
 >>>>>>> 7e34c76fa93ff92daba43087079125716c4df04c
+=======
+size_init = 2 # in the paper 4
+>>>>>>> parent of e0dfe89... chennel first
 leakage = 0.01  # leaky constant
 
 # number of GPUs
@@ -183,6 +190,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		for i in range(n_conv_layer):
 
 			if resolution_image == 28 and size_init * (1 + i) == 8:
+
 				if channel_first:
 					output = output[:, :, :7, :7]
 				else:
@@ -240,8 +248,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		print(' D: input')
 		print(images)
 
-		if channel_first_disc:
-			print('channels first ON')
+		if channel_first:
 			output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
 		else:
 			output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
