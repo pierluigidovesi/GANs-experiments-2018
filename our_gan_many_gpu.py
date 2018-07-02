@@ -27,7 +27,7 @@ cifar10_data = True
 # gan architecture
 num_epochs = 50
 BATCH_SIZE = 64
-GRADIENT_PENALTY_WEIGHT = 10  # in the paper 10
+GRADIENT_PENALTY_WEIGHT = 0 #10  # in the paper 10
 disc_iters = 5                # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
 DIM = 64                      # number of filters
