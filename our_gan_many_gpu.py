@@ -33,6 +33,8 @@ BATCH_SIZE = 64
 GRADIENT_PENALTY_WEIGHT = 10  # in the paper 10
 disc_iters = 5                # Number of discriminator updates each generator update. The paper uses 5.
 =======
+GRADIENT_PENALTY_WEIGHT = 10 # in the paper 10
+disc_iters = 5  # Number of discriminator updates each generator update. The paper uses 5.
 >>>>>>> 7e34c76fa93ff92daba43087079125716c4df04c
 latent_dim = 128
 DIM = 64                      # number of filters
@@ -303,6 +305,8 @@ X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
 
+print("DATASET DIMENSIONS:")
+print(X_train.shape)
 
 
 # merge and one hot train and test labels
@@ -418,12 +422,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	generator_loss_list = tf.add_n(generator_loss_list) / len(DEVICES)
 	discriminator_loss_list = tf.add_n(discriminator_loss_list) / len(DEVICES)
 	# ---------------------------------- Optimizers ----------------------------------- #
-	generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
 	generator_optimizer = tf.train.AdamOptimizer(learning_rate=0.3e-4,
 	                                             beta1=0.5,
 	                                             beta2=0.9).minimize(generator_loss_list, var_list=g_vars)
 
-	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
 	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=0.3e-4,
 	                                                 beta1=0.5,
 	                                                 beta2=0.9).minimize(discriminator_loss_list, var_list=d_vars)
