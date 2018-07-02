@@ -27,10 +27,10 @@ cifar10_data = True
 # gan architecture
 num_epochs = 50
 BATCH_SIZE = 64
-GRADIENT_PENALTY_WEIGHT = 0 #10  # in the paper 10
+GRADIENT_PENALTY_WEIGHT = 0    #10  # in the paper 10
 disc_iters = 10                # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
-DIM = 64                      # number of filters
+DIM = 64                       # number of filters
 label_increment = 0
 
 # CONV Parameters
@@ -292,14 +292,14 @@ if fashion_mnist_data:
 if cifar10_data:
 	(X_train, y_train), (X_test, y_test) = cifar10.load_data()
 
+print("DATASET DIMENSIONS:")
+print(X_train.shape)
+
 # reshape and merge train and test data
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
-
-print("DATASET DIMENSIONS:")
-print(X_train.shape)
 
 # merge and one hot train and test labels
 y_train = np.concatenate((y_train, y_test), axis=0)
