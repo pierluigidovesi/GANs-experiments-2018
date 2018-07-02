@@ -27,41 +27,23 @@ cifar10_data = True
 # gan architecture
 num_epochs = 50
 BATCH_SIZE = 64
-<<<<<<< HEAD
-<<<<<<< HEAD
 GRADIENT_PENALTY_WEIGHT = 10  # in the paper 10
 disc_iters = 5                # Number of discriminator updates each generator update. The paper uses 5.
-=======
-GRADIENT_PENALTY_WEIGHT = 10 # in the paper 10
-disc_iters = 5  # Number of discriminator updates each generator update. The paper uses 5.
->>>>>>> 7e34c76fa93ff92daba43087079125716c4df04c
-=======
-GRADIENT_PENALTY_WEIGHT = 20  # in the paper 10
-disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
->>>>>>> parent of e0dfe89... chennel first
 latent_dim = 128
-DIM = 64  # number of filters
+DIM = 64                      # number of filters
 label_increment = 0
 
 # CONV Parameters
 kernel_size = (5, 5)
 strides = 2
-<<<<<<< HEAD
-<<<<<<< HEAD
 size_init = 4   # in the paper 4
-=======
-size_init = 8 # in the paper 4
->>>>>>> 7e34c76fa93ff92daba43087079125716c4df04c
-=======
-size_init = 2 # in the paper 4
->>>>>>> parent of e0dfe89... chennel first
 leakage = 0.01  # leaky constant
 
 # number of GPUs
 N_GPU = 1
 
 # verbose
-sample_repetitions = 1
+sample_repetitions = 2
 always_get_loss = True
 always_show_fig = False
 
@@ -75,6 +57,7 @@ if mnist_data:
 	num_labels = 10
 	channels = 1
 	channel_first = False
+	channel_first_disc = False
 
 if fashion_mnist_data:
 	print('fashion mnist dataset')
@@ -84,6 +67,7 @@ if fashion_mnist_data:
 	num_labels = 10
 	channels = 1
 	channel_first = False
+	channel_first_disc =False
 
 if cifar10_data:
 	print('cifar10 dataset')
@@ -93,6 +77,7 @@ if cifar10_data:
 	num_labels = 10
 	channels = 3
 	channel_first = False
+	channel_first_disc = True
 
 print('resolution image: ', resolution_image)
 print('channels:         ', channels)
@@ -101,7 +86,6 @@ print('kernel size:      ', kernel_size)
 
 OUTPUT_DIM = int(resolution_image ** 2) * channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
-
 
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
@@ -248,7 +232,8 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		print(' D: input')
 		print(images)
 
-		if channel_first:
+		if channel_first_disc:
+			print('channel first disc ON')
 			output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
 		else:
 			output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
@@ -429,11 +414,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	generator_loss_list = tf.add_n(generator_loss_list) / len(DEVICES)
 	discriminator_loss_list = tf.add_n(discriminator_loss_list) / len(DEVICES)
 	# ---------------------------------- Optimizers ----------------------------------- #
-	generator_optimizer = tf.train.AdamOptimizer(learning_rate=0.3e-4,
+	generator_optimizer = tf.train.AdamOptimizer(learning_rate=2e-4,
 	                                             beta1=0.5,
 	                                             beta2=0.9).minimize(generator_loss_list, var_list=g_vars)
 
-	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=0.3e-4,
+	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=2e-4,
 	                                                 beta1=0.5,
 	                                                 beta2=0.9).minimize(discriminator_loss_list, var_list=d_vars)
 
