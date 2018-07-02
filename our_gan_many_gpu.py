@@ -250,7 +250,8 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			                       filters=n_filters * DIM,
 			                       kernel_size=kernel_size,
 			                       strides=strides,
-			                       padding='same')
+			                       padding='same',
+			                       data_format='channels_first')
 
 			print(output)
 
@@ -299,7 +300,6 @@ X_train = (X_train - 127.5) / 127.5
 
 print("DATASET DIMENSIONS:")
 print(X_train.shape)
-
 
 # merge and one hot train and test labels
 y_train = np.concatenate((y_train, y_test), axis=0)
