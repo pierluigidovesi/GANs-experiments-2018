@@ -24,28 +24,19 @@ mnist_data = False
 fashion_mnist_data = False
 cifar10_data = True
 
-channel_first_disc = True
-
 # gan architecture
 num_epochs = 50
 BATCH_SIZE = 64
-<<<<<<< HEAD
-GRADIENT_PENALTY_WEIGHT = 10  # in the paper 10
-disc_iters = 5                # Number of discriminator updates each generator update. The paper uses 5.
-=======
->>>>>>> 7e34c76fa93ff92daba43087079125716c4df04c
+GRADIENT_PENALTY_WEIGHT = 10 # in the paper 10
+disc_iters = 5  # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
-DIM = 64                      # number of filters
+DIM = 64  # number of filters
 label_increment = 0
 
 # CONV Parameters
 kernel_size = (5, 5)
 strides = 2
-<<<<<<< HEAD
-size_init = 4   # in the paper 4
-=======
 size_init = 8 # in the paper 4
->>>>>>> 7e34c76fa93ff92daba43087079125716c4df04c
 leakage = 0.01  # leaky constant
 
 # number of GPUs
@@ -181,6 +172,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		for i in range(n_conv_layer):
 
 			if resolution_image == 28 and size_init * (1 + i) == 8:
+
 				if channel_first:
 					output = output[:, :, :7, :7]
 				else:
@@ -238,8 +230,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		print(' D: input')
 		print(images)
 
-		if channel_first_disc:
-			print('channels first ON')
+		if channel_first:
 			output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
 		else:
 			output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
@@ -303,6 +294,8 @@ X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
 
+print("DATASET DIMENSIONS:")
+print(X_train.shape)
 
 
 # merge and one hot train and test labels
@@ -418,12 +411,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	generator_loss_list = tf.add_n(generator_loss_list) / len(DEVICES)
 	discriminator_loss_list = tf.add_n(discriminator_loss_list) / len(DEVICES)
 	# ---------------------------------- Optimizers ----------------------------------- #
-	generator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
 	generator_optimizer = tf.train.AdamOptimizer(learning_rate=0.3e-4,
 	                                             beta1=0.5,
 	                                             beta2=0.9).minimize(generator_loss_list, var_list=g_vars)
 
-	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=1e-4,
 	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=0.3e-4,
 	                                                 beta1=0.5,
 	                                                 beta2=0.9).minimize(discriminator_loss_list, var_list=d_vars)
