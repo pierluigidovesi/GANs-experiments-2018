@@ -30,8 +30,8 @@ BATCH_SIZE = 64
 GRADIENT_PENALTY_WEIGHT = 20   # in the paper 10
 disc_iters = 10                # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
-DIM = 64                       # number of filters
-label_increment = 0.001
+DIM = 128                      # number of filters
+label_increment = 1
 
 # CONV Parameters
 kernel_size = (5, 5)
@@ -226,7 +226,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		channels_key = 'channels_first'
 	else:
 		channels_key = 'channels_last'
-	
+
 	n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
 	n_filters = 1
 
