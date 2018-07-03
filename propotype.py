@@ -36,7 +36,7 @@ label_increment = 0
 # CONV Parameters
 kernel_size = (5, 5)
 strides = 2
-size_init = 8 # in the paper 4
+size_init = 4 # in the paper 4
 leakage = 0.01  # leaky constant
 
 # number of GPUs
@@ -145,10 +145,10 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
 																# get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
-		print(' G: units dense generator: ', channels * (size_init * size_init) * (n_filters * DIM))
+		print(' G: units dense generator: ',1024 * (size_init * size_init))
 
 		output = layers.dense(inputs=noise_with_labels,
-		                      units=channels * (size_init * size_init) * (n_filters * DIM))
+		                      units= (size_init * size_init) * 1024)
 
 		output = layers.batch_normalization(output)
 		output = tf.maximum(leakage * output, output)
@@ -158,17 +158,17 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		if channel_first:
 			# size: 128 x 7 x 7
-			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
+			output = tf.reshape(output, (-1, 1024, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
 		else:
 			# size: 7 x 7 x 128
-			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
+			output = tf.reshape(output, (-1, size_init, size_init, 1024))
 			bn_axis = -1  # [0, 1, 2] # last
 		print(' G: channel reshape:')
 		print(output)
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
-
+		filters_list = [1024, 256, 64]
 		for i in range(n_conv_layer):
 
 			if resolution_image == 28 and size_init * (1 + i) == 8:
@@ -184,7 +184,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			      n_filters * DIM * channels, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d_transpose(output,
-			                                 filters=n_filters * DIM * channels,
+			                                 filters= filters_list[i],
 			                                 kernel_size=kernel_size,
 			                                 strides=strides,
 			                                 padding='same')
@@ -239,12 +239,12 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		print(output)
 
 		# ----- LoopLayers, Conv, Leaky ----- #
-
+		filters_list = [64, 256, 1024]
 		for i in range(n_conv_layer):
 			print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d(output,
-			                       filters=n_filters * DIM,
+			                       filters= filters_list[i],
 			                       kernel_size=kernel_size,
 			                       strides=strides,
 			                       padding='same')
@@ -254,7 +254,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters * 2)
 
-		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * DIM)])
+		output = tf.reshape(output, [-1, size_init * size_init * filters_list[-1] ])
 		print(' D: reshape linear layer')
 		print(output)
 
