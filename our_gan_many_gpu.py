@@ -221,6 +221,12 @@ def discriminator(images, reuse=None, n_conv_layer=3):
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
     """
+
+	if channel_first_disc == True:
+		channels_key = 'channels_first'
+	else:
+		channels_key = 'channels_last'
+	
 	n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
 	n_filters = 1
 
@@ -251,7 +257,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			                       kernel_size=kernel_size,
 			                       strides=strides,
 			                       padding='same',
-			                       data_format='channels_first')
+			                       data_format=channels_key)
 
 			print(output)
 
