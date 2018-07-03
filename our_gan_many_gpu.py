@@ -20,9 +20,9 @@ except:
 # --------- SETTINGS ---------
 
 # dataset
-mnist_data = False
+mnist_data = True
 fashion_mnist_data = False
-cifar10_data = True
+cifar10_data = False
 
 # gan architecture
 num_epochs = 50
