@@ -254,7 +254,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters * 2)
 
-		output = tf.reshape(output, [-1, size_init * size_init * filters[-1] ])
+		output = tf.reshape(output, [-1, size_init * size_init * filters_list[-1] ])
 		print(' D: reshape linear layer')
 		print(output)
 
