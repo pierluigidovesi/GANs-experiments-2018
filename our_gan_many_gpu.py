@@ -604,6 +604,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		if total_time >= timer:
 			epoch = num_epochs
+			print('time out!')
 
 	# END FOR EPOCHS
 # END SESSION
