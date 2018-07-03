@@ -462,9 +462,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		print(" ----------> epoch: ", epoch)
 
 		# shuffle dataset
-		np.random.shuffle(indices)
-		X_train = X_train[indices]
-		y_train = y_train[indices]
+		#np.random.shuffle(indices)
+		#X_train = X_train[indices]
+		#y_train = y_train[indices]
 
 		# MACRO BATCHES FOR
 		for i in tqdm(range(num_macro_batches)):  # macro batches
