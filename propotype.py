@@ -145,10 +145,10 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
 																# get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
-		print(' G: units dense generator: ', channels * (size_init * size_init) * (n_filters * DIM))
+		print(' G: units dense generator: ',1024 * (size_init * size_init))
 
 		output = layers.dense(inputs=noise_with_labels,
-		                      units=channels * (size_init * size_init) * (n_filters * DIM))
+		                      units= (size_init * size_init) * 1024)
 
 		output = layers.batch_normalization(output)
 		output = tf.maximum(leakage * output, output)
@@ -158,11 +158,11 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		if channel_first:
 			# size: 128 x 7 x 7
-			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
+			output = tf.reshape(output, (-1, 1024, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
 		else:
 			# size: 7 x 7 x 128
-			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
+			output = tf.reshape(output, (-1, size_init, size_init, 1024))
 			bn_axis = -1  # [0, 1, 2] # last
 		print(' G: channel reshape:')
 		print(output)
@@ -254,7 +254,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters * 2)
 
-		output = tf.reshape(output, [-1, size_init * size_init * filters[-1])])
+		output = tf.reshape(output, [-1, size_init * size_init * filters[-1] ])
 		print(' D: reshape linear layer')
 		print(output)
 
