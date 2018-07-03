@@ -168,7 +168,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		print(output)
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
-
+		filters_list = [1024, 256, 64]
 		for i in range(n_conv_layer):
 
 			if resolution_image == 28 and size_init * (1 + i) == 8:
@@ -184,7 +184,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			      n_filters * DIM * channels, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d_transpose(output,
-			                                 filters=n_filters * DIM * channels,
+			                                 filters= filters_list[i],
 			                                 kernel_size=kernel_size,
 			                                 strides=strides,
 			                                 padding='same')
@@ -239,12 +239,12 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		print(output)
 
 		# ----- LoopLayers, Conv, Leaky ----- #
-
+		filters_list = [64, 256, 1024]
 		for i in range(n_conv_layer):
 			print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d(output,
-			                       filters=n_filters * DIM,
+			                       filters= filters_list[i],
 			                       kernel_size=kernel_size,
 			                       strides=strides,
 			                       padding='same')
@@ -254,7 +254,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters * 2)
 
-		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * DIM)])
+		output = tf.reshape(output, [-1, size_init * size_init * filters[-1])])
 		print(' D: reshape linear layer')
 		print(output)
 
