@@ -19,6 +19,8 @@ except:
 
 # --------- SETTINGS ---------
 
+timer = 11000  # seconds
+
 # dataset
 mnist_data = False
 fashion_mnist_data = False
@@ -27,11 +29,11 @@ cifar10_data = True
 # gan architecture
 num_epochs = 50
 BATCH_SIZE = 64
-GRADIENT_PENALTY_WEIGHT = 0 #10   # in the paper 10
-disc_iters = 10                # Number of discriminator updates each generator update. The paper uses 5.
+GRADIENT_PENALTY_WEIGHT = 0    #10   # in the paper 10
+disc_iters = 20                # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
 DIM = 64                       # number of filters
-label_increment = 0  # 0.001
+label_increment = 0            # 0.001
 
 # CONV Parameters
 kernel_size = (5, 5)
@@ -595,9 +597,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		labels_incremental_weight += label_increment  # now 0
 		labels_incremental_weight = min(labels_incremental_weight, 1)
 
-		print(' cycle time:  ', time.time() - start_time, " - total time: ", time.time() - init_time)
+		total_time = time.time() - init_time
+		print(' cycle time:  ', time.time() - start_time, " - total time: ", total_time)
 		print(' gen cost   = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
 		print(' disc cost  = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
+
+		if total_time >= timer:
+			epoch = num_epochs
 
 	# END FOR EPOCHS
 # END SESSION
