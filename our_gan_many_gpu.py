@@ -20,18 +20,18 @@ except:
 # --------- SETTINGS ---------
 
 # dataset
-mnist_data = True
+mnist_data = False
 fashion_mnist_data = False
-cifar10_data = False
+cifar10_data = True
 
 # gan architecture
 num_epochs = 50
 BATCH_SIZE = 64
-GRADIENT_PENALTY_WEIGHT = 20   # in the paper 10
+GRADIENT_PENALTY_WEIGHT = 10   # in the paper 10
 disc_iters = 10                # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128
-DIM = 128                      # number of filters
-label_increment = 1
+DIM = 64                       # number of filters
+label_increment = 0.001
 
 # CONV Parameters
 kernel_size = (5, 5)
@@ -77,7 +77,7 @@ if cifar10_data:
 	num_labels = 10
 	channels = 3
 	channel_first = False
-	channel_first_disc = True
+	channel_first_disc = False
 
 print('resolution image: ', resolution_image)
 print('channels:         ', channels)
