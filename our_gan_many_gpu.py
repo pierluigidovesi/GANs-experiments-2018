@@ -22,18 +22,18 @@ timer = 11000            # seconds
 np.random.seed(100)
 
 # dataset
-mnist_data   = False     # 28 28 (1)
+mnist_data   = True     # 28 28 (1)
 fashion_data = False     # 28 28 (1)
-cifar10_data = True      # 32 32  3
+cifar10_data = False      # 32 32  3
 
 # gan architecture
 num_epochs = 50          # tot epochs
 BATCH_SIZE = 64          # micro batch size
-grad_pen_w = 10           # in the paper 10
-disc_iters = 20           # Number of discriminator updates each generator update. The paper uses 5.
+grad_pen_w = 0           # in the paper 10
+disc_iters = 10           # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 64          # input dim (paper 128, but suggested 64)
 const_filt = 64          # number of filters
-label_incr = 0.1         # increment of labels weight (saturate in 1)
+label_incr = 0         # increment of labels weight (saturate in 1)
 
 # CONV Parameters
 kernel_size = (5, 5)     # conv kenel size
@@ -70,7 +70,7 @@ if fashion_data:
 	num_labels         = 10
 	channels           = 1
 	channel_first      = False
-	channel_first_disc =False
+	channel_first_disc = False
 
 if cifar10_data:
 	print('cifar10 dataset')
