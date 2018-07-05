@@ -29,9 +29,9 @@ cifar10_data = False      # 32 32  3
 # gan architecture
 num_epochs = 50          # tot epochs
 BATCH_SIZE = 64          # micro batch size
-grad_pen_w = 0           # in the paper 10
+grad_pen_w = 1           # in the paper 10
 disc_iters = 10           # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 64          # input dim (paper 128, but suggested 64)
+latent_dim = 128          # input dim (paper 128, but suggested 64)
 const_filt = 64          # number of filters
 label_incr = 0         # increment of labels weight (saturate in 1)
 
@@ -106,7 +106,7 @@ print('3. CONV PARAMETERS')
 print('kernel_size: ', kernel_size)
 print('strides:     ', strides)
 print('size_init:   ', size_init)
-print('leakage:     ',leakage)
+print('leakage:     ', leakage)
 
 print('USED GPUs:   ', N_GPU)
 
@@ -142,26 +142,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
-
-	# CONV "THEORY"
-	# number conv layer number of time we need to duplicate image
-	# starting from size_init to image_resolution --> if image_res 2 -> 1 layer, 4 -> 2layer ...
-	# then log2
-
-	# num filters --> arriva a 1 per ultimo layer
-	# if 1 layer --> 1, if 2 layers --> 2, 3 layers --> 4
-	# then 2^conv_layer-1
-
-	# for cifar 10:
-	# image res 32, size init 4 --> 32/4 = 8 --> log2 8 = 3
-	# filters = 2^3 = 4
-
-	# for mnist:
-	# image res 28, size init 4 --> 28/4 = 7 (wrong, but) --> log2 7 = 2.8 (ceil!)--> 3 ok
-	# n_filter = 4 (POSSIBLE REDUCTION IS SPECIFIED)
-
 	# (if image size is a power of 2 --> you can: n_filter = image_res/n_filter)
-
 	# get number of layers and filters
 
 	n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
