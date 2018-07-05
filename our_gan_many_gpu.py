@@ -82,29 +82,30 @@ if cifar10_data:
 OUTPUT_DIM = int(resolution_image ** 2) * channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
 
+# ---- PRINT ----
 
-print('resolution_image:   ', resolution_image)
-print('num_labels:         ', num_labels)
-print('channels:           ', channels)
-print('channel_first:      ', channel_first)
-print('channel_first_disc: ', channel_first_disc)
+print('res_image:   ', resolution_image)
+print('num_labels:  ', num_labels)
+print('channels:    ', channels)
+print('ch_first:    ', channel_first)
+print('ch_first_d:  ', channel_first_disc)
 
 print('2. GAN ARCHITECTURE')
-print('num_epochs: ', num_epochs)
-print('BATCH_SIZE: ', BATCH_SIZE)
-print('grad_pen_w: ', grad_pen_w)
-print('disc_iters: ', disc_iters)
-print('latent_dim: ', latent_dim)
-print('const_filt: ', const_filt)
-print('label_incr: ', label_incr)
+print('num_epochs:  ', num_epochs)
+print('BATCH_SIZE:  ', BATCH_SIZE)
+print('grad_pen_w:  ', grad_pen_w)
+print('disc_iters:  ', disc_iters)
+print('latent_dim:  ', latent_dim)
+print('const_filt:  ', const_filt)
+print('label_incr:  ', label_incr)
 
 print('3. CONV PARAMETERS')
 print('kernel_size: ', kernel_size)
 print('strides:     ', strides)
-print('size_init:   ',size_init)
+print('size_init:   ', size_init)
 print('leakage:     ',leakage)
 
-print('USED GPUs: ', N_GPU)
+print('USED GPUs:   ', N_GPU)
 
 
 
@@ -159,6 +160,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	# (if image size is a power of 2 --> you can: n_filter = image_res/n_filter)
 
 	# get number of layers and filters
+
 	n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
 	n_filters = int(2 ** (n_conv_layer - 1))
 
