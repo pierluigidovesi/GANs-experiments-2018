@@ -19,7 +19,7 @@ except:
 timer = 11000            # seconds
 
 # random seed
-np.random.seed(100)
+np.random.seed(10)
 
 # dataset
 mnist_data   = False     # 28 28 (1)
@@ -28,14 +28,20 @@ cifar10_data = True      # 32 32  3
 
 # gan architecture
 num_epochs = 50          # tot epochs
-BATCH_SIZE = 64          # micro batch size
-grad_pen_w = 50          # in the paper 10
+batch_size = 64          # micro batch size
 disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 64          # input dim (paper 128, but suggested 64)
-const_filt = 64          # number of filters
+
+# Losses parameters
+grad_pen_w = 10          # in the paper 10
+learn_rate = 1e-4        # in the paper 1/2e-4
+beta1_opti = 0.5         # in the paper 0.5
+beta2_opti = 0.9         # in the paper 0.9
 label_incr = 1           # increment of labels weight (saturate in 1)
+label_satu = 1           # max label weight
 
 # CONV Parameters
+const_filt = 64          # number of filters
 kernel_size = (5, 5)     # conv kenel size
 strides     = 2          # conv strides
 size_init   = 4          # in the paper 4
@@ -95,21 +101,26 @@ print('ch_first_d:  ', channel_first_disc)
 
 print('2. GAN ARCHITECTURE')
 print('num_epochs:  ', num_epochs)
-print('BATCH_SIZE:  ', BATCH_SIZE)
-print('grad_pen_w:  ', grad_pen_w)
+print('batch_size:  ', batch_size)
 print('disc_iters:  ', disc_iters)
 print('latent_dim:  ', latent_dim)
-print('const_filt:  ', const_filt)
-print('label_incr:  ', label_incr)
 
-print('3. CONV PARAMETERS')
+print('3. LOSSES PARAMETERS')
+print('grad_pen_w:  ', grad_pen_w)
+print('learn rate:  ', learn_rate)
+print('beta1_opti:  ', beta1_opti)
+print('beta2_opti:  ', beta2_opti)
+print('label_incr:  ', label_incr)
+print('label_satu:  ', label_satu)
+
+print('4. CONV PARAMETERS')
+print('const_filt:  ', const_filt)
 print('kernel_size: ', kernel_size)
 print('strides:     ', strides)
 print('size_init:   ', size_init)
 print('leakage:     ', leakage)
 
 print('USED GPUs:   ', N_GPU)
-
 
 
 def generate_images(images, epoch):
@@ -334,9 +345,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# TRAINING SESSION
 	label_weights = tf.placeholder(tf.float32, shape=())
 
-	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
-	all_real_data       = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
-	all_real_labels     = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
+	all_input_generator = tf.placeholder(tf.float32, shape=[batch_size, latent_dim + num_labels])
+	all_real_data       = tf.placeholder(tf.float32, shape=[batch_size, OUTPUT_DIM])
+	all_real_labels     = tf.placeholder(tf.float32, shape=[batch_size, num_labels])
 
 	# split over GPUs
 	binder_real_data       = tf.split(all_real_data, len(DEVICES))
@@ -347,8 +358,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	generator_loss_list     = []
 	discriminator_loss_list = []
 
-	# split BATCH_SIZE
-	BATCH_SIZE = int(BATCH_SIZE // len(DEVICES))
+	# split batch_size
+	batch_size = int(batch_size // len(DEVICES))
 
 	# for device_index, (device, one_device_real_data, one_device_real_labels, one_device_input_generator)
 	# in enumerate(zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
@@ -367,7 +378,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# ----------------------------------- Outputs ----------------------------------- #
 			print('----------------- G: FAKE SAMPLES    -----------------')
-			fake_samples = generator(BATCH_SIZE, input_generator, reuse=True)
+			fake_samples = generator(batch_size, input_generator, reuse=True)
 
 			print('----------------- D: DISC REAL SCORE -----------------')
 			disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
@@ -406,7 +417,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			disc_labels_loss = (fake_labels_weight * labels_penalty_fakes + labels_penalty_real) * label_weights
 
 			# gradient penalty
-			alpha = tf.random_uniform(shape=[BATCH_SIZE, 1], minval=0., maxval=1.)
+			alpha = tf.random_uniform(shape=[batch_size, 1], minval=0., maxval=1.)
 			differences = fake_samples - real_samples
 			interpolates = real_samples + alpha * differences
 			gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
@@ -427,20 +438,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	generator_loss_list = tf.add_n(generator_loss_list) / len(DEVICES)
 	discriminator_loss_list = tf.add_n(discriminator_loss_list) / len(DEVICES)
 	# ---------------------------------- Optimizers ----------------------------------- #
-	generator_optimizer = tf.train.AdamOptimizer(learning_rate=2e-4,
-	                                             beta1=0.5,
-	                                             beta2=0.9).minimize(generator_loss_list, var_list=g_vars)
+	generator_optimizer = tf.train.AdamOptimizer(learning_rate=learn_rate,
+	                                             beta1=beta1_opti,
+	                                             beta2=beta2_opti).minimize(generator_loss_list, var_list=g_vars)
 
-	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=2e-4,
-	                                                 beta1=0.5,
-	                                                 beta2=0.9).minimize(discriminator_loss_list, var_list=d_vars)
+	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=learn_rate,
+	                                                 beta1=beta1_opti,
+	                                                 beta2=beta2_opti).minimize(discriminator_loss_list, var_list=d_vars)
 
 	# ------------------------------------ Train ---------------------------------------------- #
 	print(' - - - - - - - - - - TRAIN - - - - - - - - - - ')
 	# with tf.Session() as session:
 
-	# restore BATCH_SIZE
-	BATCH_SIZE = int(BATCH_SIZE * len(DEVICES))
+	# restore batch_size
+	batch_size = int(batch_size * len(DEVICES))
 
 	# run session
 	session.run(tf.global_variables_initializer())
@@ -449,7 +460,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	indices = np.arange(X_train.shape[0])
 
 	# big batch size
-	macro_batches_size = BATCH_SIZE * disc_iters
+	macro_batches_size = batch_size * disc_iters
 
 	# num of batches
 	num_macro_batches = int((X_train.shape[0]) // macro_batches_size)
@@ -496,11 +507,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				# DISCRIMINATOR TRAINING
 
 				# divide dataset in batches
-				img_samples = discriminator_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
+				img_samples = discriminator_macro_batches[j * batch_size:(j + 1) * batch_size]
 				# get labels
-				img_labels = labels_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
+				img_labels = labels_macro_batches[j * batch_size:(j + 1) * batch_size]
 				# get noise
-				noise = noise_macro_batches[j * BATCH_SIZE:(j + 1) * BATCH_SIZE]
+				noise = noise_macro_batches[j * batch_size:(j + 1) * batch_size]
 				# create latent space
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
@@ -515,7 +526,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				                                                                      all_real_labels: img_labels,
 				                                                                      label_weights: labels_incremental_weight})
 
-				# append losses means (each loss has BATCH_SIZE element)
+				# append losses means (each loss has batch_size element)
 				d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mean(d_lab_cost)])
 
 			# END FOR MICRO BATCHES
@@ -525,11 +536,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# GENERATOR TRAINING
 
 			# generate noise
-			generator_noise = np.random.rand(BATCH_SIZE, latent_dim)
+			generator_noise = np.random.rand(batch_size, latent_dim)
 			# generate random labels and make them one hot
-			fake_labels = np.random.randint(low=0, high=num_labels - 1, size=[BATCH_SIZE, ])
-			fake_labels_onehot = np.zeros((BATCH_SIZE, 10))
-			fake_labels_onehot[np.arange(BATCH_SIZE), fake_labels] = 1
+			fake_labels = np.random.randint(low=0, high=num_labels - 1, size=[batch_size, ])
+			fake_labels_onehot = np.zeros((batch_size, 10))
+			fake_labels_onehot[np.arange(batch_size), fake_labels] = 1
 			# concatenate to create latent space
 			generator_labels_with_noise = np.concatenate((fake_labels_onehot,
 			                                              generator_noise), axis=1)
@@ -543,7 +554,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                                          all_real_labels: fake_labels_onehot,
 			                                                          label_weights: labels_incremental_weight})
 
-			# append directly in gen loss history (with mean beacuse of BATCH_SIZE)
+			# append directly in gen loss history (with mean beacuse of batch_size)
 			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
 		# END FOR MACRO BATCHES
 
@@ -600,7 +611,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		# increment/saturate label weight
 		labels_incremental_weight += label_incr  # now 0
-		labels_incremental_weight = min(labels_incremental_weight, 1)
+		labels_incremental_weight = min(labels_incremental_weight, label_satu)
 
 		total_time = time.time() - init_time
 		print(' cycle time:  ', time.time() - start_time, " - total time: ", total_time)
