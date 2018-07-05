@@ -4,13 +4,9 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import layers
 import time
-import matplotlib
-# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-matplotlib.get_backend()
-matplotlib.rcParams['backend'] = "Qt4Agg"
-# import sklearn.datasets
 
+# import tqdm only if previously installed
 try:
 	from tqdm import tqdm
 	im_tqdm = True
@@ -19,38 +15,40 @@ except:
 
 # --------- SETTINGS ---------
 
-timer = 11000  # seconds
+# max time allowed
+timer = 11000            # seconds
 
 # dataset
-mnist_data = False
-fashion_mnist_data = False
-cifar10_data = True
+mnist_data   = False     # 28 28 (1)
+fashion_data = False     # 28 28 (1)
+cifar10_data = True      # 32 32  3
 
 # gan architecture
-num_epochs = 50
-BATCH_SIZE = 64
-GRADIENT_PENALTY_WEIGHT = 0    #10   # in the paper 10
-disc_iters = 20                # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 128
-DIM = 64                       # number of filters
-label_increment = 0            # 0.001
+num_epochs = 50          # tot epochs
+BATCH_SIZE = 64          # micro batch size
+grad_pen_w = 10          # in the paper 10
+disc_iters = 5           # Number of discriminator updates each generator update. The paper uses 5.
+latent_dim = 128         # input dim
+const_filt = 64          # number of filters
+label_incr = 0.1         # increment of labels weight (saturate in 1)
 
 # CONV Parameters
-kernel_size = (5, 5)
-strides = 2
-size_init = 4   # in the paper 4
-leakage = 0.01  # leaky constant
+kernel_size = (5, 5)     # conv kenel size
+strides     = 2          # conv strides
+size_init   = 4          # in the paper 4
+leakage     = 0.01       # leaky relu constant
 
 # number of GPUs
-N_GPU = 1
+N_GPU = 1                # need to change if many gpu!
 
 # verbose
-sample_repetitions = 2
-always_get_loss = True
-always_show_fig = False
+sample_repetitions = 2   # to get more rows of images of same epoch in same plot
+always_get_loss = True   # get loss each epoch
+always_show_fig = False  # real time show test samples each epoch (do not work in backend)
 
-# --------- VARIANT PARAMETERS ---------
+# --------- DEPENDENT PARAMETERS AND PRINTS---------
 
+print('1. DATASET SETTINGS')
 if mnist_data:
 	print('mnist dataset')
 	from keras.datasets import mnist
@@ -61,7 +59,7 @@ if mnist_data:
 	channel_first = False
 	channel_first_disc = False
 
-if fashion_mnist_data:
+if fashion_data:
 	print('fashion mnist dataset')
 	from keras.datasets import fashion_mnist
 
@@ -81,13 +79,34 @@ if cifar10_data:
 	channel_first = False
 	channel_first_disc = False
 
-print('resolution image: ', resolution_image)
-print('channels:         ', channels)
-print('strides:          ', strides)
-print('kernel size:      ', kernel_size)
-
 OUTPUT_DIM = int(resolution_image ** 2) * channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
+
+
+print('resolution_image:   ', resolution_image)
+print('num_labels:         ', num_labels)
+print('channels:           ', channels)
+print('channel_first:      ', channel_first)
+print('channel_first_disc: ', channel_first_disc)
+
+print('2. GAN ARCHITECTURE')
+print('num_epochs: ', num_epochs)
+print('BATCH_SIZE: ', BATCH_SIZE)
+print('grad_pen_w: ', grad_pen_w)
+print('disc_iters: ', disc_iters)
+print('latent_dim: ', latent_dim)
+print('const_filt: ', const_filt)
+print('label_incr: ', label_incr)
+
+print('3. CONV PARAMETERS')
+print('kernel_size: ', kernel_size)
+print('strides:     ', strides)
+print('size_init:   ',size_init)
+print('leakage:     ',leakage)
+
+print('USED GPUs: ', N_GPU)
+
+
 
 def generate_images(images, epoch):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
@@ -149,10 +168,10 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
 																# get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
-		print(' G: units dense generator: ', channels * (size_init * size_init) * (n_filters * DIM))
+		print(' G: units dense generator: ', channels * (size_init * size_init) * (n_filters * const_filt))
 
 		output = layers.dense(inputs=noise_with_labels,
-		                      units=channels * (size_init * size_init) * (n_filters * DIM))
+		                      units=channels * (size_init * size_init) * (n_filters * const_filt))
 
 		output = layers.batch_normalization(output)
 		output = tf.maximum(leakage * output, output)
@@ -162,11 +181,11 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 		if channel_first:
 			# size: 128 x 7 x 7
-			output = tf.reshape(output, (-1, n_filters * DIM * channels, size_init, size_init))
+			output = tf.reshape(output, (-1, n_filters * const_filt * channels, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
 		else:
 			# size: 7 x 7 x 128
-			output = tf.reshape(output, (-1, size_init, size_init, n_filters * DIM * channels))
+			output = tf.reshape(output, (-1, size_init, size_init, n_filters * const_filt * channels))
 			bn_axis = -1  # [0, 1, 2] # last
 		print(' G: channel reshape:')
 		print(output)
@@ -185,10 +204,10 @@ def generator(n_samples, noise_with_labels, reuse=None):
 				print(output)
 
 			print(' G: conv2d_transpose iter', i, ' - tot filters: ',
-			      n_filters * DIM * channels, ' - n_filters: ', n_filters)
+			      n_filters * const_filt * channels, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d_transpose(output,
-			                                 filters=n_filters * DIM * channels,
+			                                 filters=n_filters * const_filt * channels,
 			                                 kernel_size=kernel_size,
 			                                 strides=strides,
 			                                 padding='same')
@@ -255,7 +274,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
 
 			output = layers.conv2d(output,
-			                       filters=n_filters * DIM,
+			                       filters=n_filters * const_filt,
 			                       kernel_size=kernel_size,
 			                       strides=strides,
 			                       padding='same',
@@ -266,7 +285,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters * 2)
 
-		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * DIM)])
+		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * const_filt)])
 		print(' D: reshape linear layer')
 		print(output)
 
@@ -295,7 +314,7 @@ def get_trainable_variables(): # used in optimizer/minimize (training)
 # get data
 if mnist_data:
 	(X_train, y_train), (X_test, y_test) = mnist.load_data()
-if fashion_mnist_data:
+if fashion_data:
 	(X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
 if cifar10_data:
 	(X_train, y_train), (X_test, y_test) = cifar10.load_data()
@@ -406,7 +425,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			interpolates = real_samples + alpha * differences
 			gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
 			slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-			gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
+			gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)*grad_pen_w
 
 			# sum losses
 			discriminator_loss = disc_wasserstein_loss + disc_labels_loss + gradient_penalty
@@ -594,7 +613,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				loss_file.write("%s\n" % item)
 
 		# increment/saturate label weight
-		labels_incremental_weight += label_increment  # now 0
+		labels_incremental_weight += label_incr  # now 0
 		labels_incremental_weight = min(labels_incremental_weight, 1)
 
 		total_time = time.time() - init_time
