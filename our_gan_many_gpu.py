@@ -29,11 +29,11 @@ cifar10_data = False      # 32 32  3
 # gan architecture
 num_epochs = 50          # tot epochs
 BATCH_SIZE = 64          # micro batch size
-grad_pen_w = 1           # in the paper 10
-disc_iters = 10           # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 128          # input dim (paper 128, but suggested 64)
+grad_pen_w = 10          # in the paper 10
+disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
+latent_dim = 64          # input dim (paper 128, but suggested 64)
 const_filt = 64          # number of filters
-label_incr = 0         # increment of labels weight (saturate in 1)
+label_incr = 1           # increment of labels weight (saturate in 1)
 
 # CONV Parameters
 kernel_size = (5, 5)     # conv kenel size
