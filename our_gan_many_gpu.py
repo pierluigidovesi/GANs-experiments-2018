@@ -18,6 +18,9 @@ except:
 # max time allowed
 timer = 11000            # seconds
 
+# random seed
+np.random.seed(100)
+
 # dataset
 mnist_data   = False     # 28 28 (1)
 fashion_data = False     # 28 28 (1)
@@ -26,7 +29,7 @@ cifar10_data = True      # 32 32  3
 # gan architecture
 num_epochs = 50          # tot epochs
 BATCH_SIZE = 64          # micro batch size
-grad_pen_w = 10          # in the paper 10
+grad_pen_w = 0          # in the paper 10
 disc_iters = 5           # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim
 const_filt = 64          # number of filters
@@ -53,30 +56,30 @@ if mnist_data:
 	print('mnist dataset')
 	from keras.datasets import mnist
 
-	resolution_image = 28
-	num_labels = 10
-	channels = 1
-	channel_first = False
+	resolution_image   = 28
+	num_labels         = 10
+	channels           = 1
+	channel_first      = False
 	channel_first_disc = False
 
 if fashion_data:
 	print('fashion mnist dataset')
 	from keras.datasets import fashion_mnist
 
-	resolution_image = 28
-	num_labels = 10
-	channels = 1
-	channel_first = False
+	resolution_image   = 28
+	num_labels         = 10
+	channels           = 1
+	channel_first      = False
 	channel_first_disc =False
 
 if cifar10_data:
 	print('cifar10 dataset')
 	from keras.datasets import cifar10
 
-	resolution_image = 32
-	num_labels = 10
-	channels = 3
-	channel_first = False
+	resolution_image   = 32
+	num_labels         = 10
+	channels           = 3
+	channel_first      = False
 	channel_first_disc = False
 
 OUTPUT_DIM = int(resolution_image ** 2) * channels
@@ -326,7 +329,7 @@ print(X_train.shape)
 
 # reshape and merge train and test data
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
-X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
+X_test  = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
 
@@ -351,16 +354,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	label_weights = tf.placeholder(tf.float32, shape=())
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[BATCH_SIZE, latent_dim + num_labels])
-	all_real_data = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
-	all_real_labels = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
+	all_real_data       = tf.placeholder(tf.float32, shape=[BATCH_SIZE, OUTPUT_DIM])
+	all_real_labels     = tf.placeholder(tf.float32, shape=[BATCH_SIZE, num_labels])
 
 	# split over GPUs
-	binder_real_data = tf.split(all_real_data, len(DEVICES))
-	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
+	binder_real_data       = tf.split(all_real_data, len(DEVICES))
+	binder_real_labels     = tf.split(all_real_labels, len(DEVICES))
 	binder_input_generator = tf.split(all_input_generator, len(DEVICES))
 
 	# list used for mean over GPUs
-	generator_loss_list = []
+	generator_loss_list     = []
 	discriminator_loss_list = []
 
 	# split BATCH_SIZE
