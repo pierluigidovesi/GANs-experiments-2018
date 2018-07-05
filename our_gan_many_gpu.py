@@ -22,9 +22,9 @@ timer = 11000            # seconds
 np.random.seed(100)
 
 # dataset
-mnist_data   = True     # 28 28 (1)
+mnist_data   = False     # 28 28 (1)
 fashion_data = False     # 28 28 (1)
-cifar10_data = False      # 32 32  3
+cifar10_data = True      # 32 32  3
 
 # gan architecture
 num_epochs = 50          # tot epochs
