@@ -29,9 +29,9 @@ cifar10_data = True      # 32 32  3
 # gan architecture
 num_epochs = 50          # tot epochs
 BATCH_SIZE = 64          # micro batch size
-grad_pen_w = 0          # in the paper 10
+grad_pen_w = 5           # in the paper 10
 disc_iters = 5           # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 128         # input dim
+latent_dim = 64          # input dim (paper 128, but suggested 64)
 const_filt = 64          # number of filters
 label_incr = 0.1         # increment of labels weight (saturate in 1)
 
@@ -485,7 +485,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	for epoch in range(num_epochs):
 
 		start_time = time.time()
-		print(" ----------> epoch: ", epoch)
+		print(" ----------> epoch: ", epoch, '- iterations: ', num_macro_batches*epoch)
 
 		#shuffle dataset
 		#np.random.shuffle(indices)
