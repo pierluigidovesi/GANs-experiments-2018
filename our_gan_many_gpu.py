@@ -33,15 +33,16 @@ disc_iters = 10          # Number of discriminator updates each generator update
 latent_dim = 64          # input dim (paper 128, but suggested 64)
 
 # Losses parameters
-grad_pen_w = 10          # in the paper 10
+wasserst_w = 0           # wasserstain weight (always 1)
+grad_pen_w = 0           # in the paper 10
 learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
-label_incr = 0.1           # increment of labels weight (saturate in 1)
+label_incr = 1           # increment of labels weight (saturate in 1)
 label_satu = 1           # max label weight
 
 # CONV Parameters
-const_filt = 64          # number of filters
+const_filt  = 64         # number of filters
 kernel_size = (5, 5)     # conv kenel size
 strides     = 2          # conv strides
 size_init   = 4          # in the paper 4
@@ -391,7 +392,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# ----- Gen Loss ----- #
 
 			# wasserstein
-			gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score)  # WASSERSTEIN
+			gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score) * wasserst_w  # WASSERSTEIN
 
 			# labels
 			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
@@ -404,7 +405,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# ----- Disc Loss ----- #
 
 			# wasserstein
-			disc_wasserstein_loss = tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)
+			disc_wasserstein_loss = (tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)) * wasserst_w
 
 			# labels
 			labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
@@ -422,7 +423,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			interpolates = real_samples + alpha * differences
 			gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
 			slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-			gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)*grad_pen_w
+			gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) * grad_pen_w
 
 			# sum losses
 			discriminator_loss = disc_wasserstein_loss + disc_labels_loss + gradient_penalty
@@ -471,6 +472,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	# init label weight
 	labels_incremental_weight = 0
+
+	# increment/saturate label weight
+	labels_incremental_weight += label_incr
+	labels_incremental_weight = min(labels_incremental_weight, label_satu)
 
 	# EPOCHS FOR
 	init_time = time.time()
@@ -608,10 +613,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			loss_file = open('disc_losses.txt', 'w')
 			for item in discriminator_history:
 				loss_file.write("%s\n" % item)
-
-		# increment/saturate label weight
-		labels_incremental_weight += label_incr  # now 0
-		labels_incremental_weight = min(labels_incremental_weight, label_satu)
 
 		total_time = time.time() - init_time
 		print(' cycle time:  ', time.time() - start_time, " - total time: ", total_time)
