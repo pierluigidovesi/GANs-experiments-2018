@@ -492,7 +492,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# get labels
 			labels_macro_batches = y_train[i * macro_batches_size:(i + 1) * macro_batches_size]
 			# generate noise
-			noise_macro_batches = np.random.rand(macro_batches_size, latent_dim)
+			noise_macro_batches = np.random.randn(macro_batches_size, latent_dim)
 
 			# init disc cost vector (to be used in disc_iters)
 			d_cost_vector = []
@@ -536,7 +536,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# GENERATOR TRAINING
 
 			# generate noise
-			generator_noise = np.random.rand(batch_size, latent_dim)
+			generator_noise = np.random.randn(batch_size, latent_dim)
 			# generate random labels and make them one hot
 			fake_labels = np.random.randint(low=0, high=num_labels - 1, size=[batch_size, ])
 			fake_labels_onehot = np.zeros((batch_size, 10))
