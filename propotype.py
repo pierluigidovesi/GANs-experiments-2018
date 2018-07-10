@@ -325,10 +325,10 @@ print("DATASET DIMENSIONS:")
 print(X_train.shape)
 
 # reshape and merge train and test data
+X_train = X_train[:,:,:,0]
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test  = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 # X_train = np.concatenate((X_train, X_test), axis=0)
-X_train = X_train[:,:,:,0]
 X_train = (X_train - 127.5) / 127.5
 
 # merge and one hot train and test labels
