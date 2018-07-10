@@ -35,7 +35,7 @@ latent_dim = 64          # input dim (paper 128, but suggested 64)
 # Losses parameters
 wasserst_w = 0           # wasserstain weight (always 1)
 grad_pen_w = 0           # in the paper 10
-learn_rate = 2e-4        # in the paper 1/2e-4
+learn_rate = 1e-5        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
 label_incr = 1           # increment of labels weight (saturate in 1)
