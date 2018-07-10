@@ -85,7 +85,7 @@ if cifar10_data:
 
 	resolution_image   = 32
 	num_labels         = 10
-	channels           = 3
+	channels           = 1
 	channel_first      = False
 	channel_first_disc = True
 
@@ -327,11 +327,12 @@ print(X_train.shape)
 # reshape and merge train and test data
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test  = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
-X_train = np.concatenate((X_train, X_test), axis=0)
+# X_train = np.concatenate((X_train, X_test), axis=0)
+X_train = X_train[:,0,:,:]
 X_train = (X_train - 127.5) / 127.5
 
 # merge and one hot train and test labels
-y_train = np.concatenate((y_train, y_test), axis=0)
+# y_train = np.concatenate((y_train, y_test), axis=0)
 y_hot = np.zeros((y_train.shape[0], num_labels))
 b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
