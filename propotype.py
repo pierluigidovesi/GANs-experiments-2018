@@ -86,8 +86,8 @@ if cifar10_data:
 	resolution_image   = 32
 	num_labels         = 10
 	channels           = 3
-	channel_first      = False
-	channel_first_disc = False
+	channel_first      = True
+	channel_first_disc = True
 
 OUTPUT_DIM = int(resolution_image ** 2) * channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
