@@ -291,10 +291,14 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		output = layers.dense(output, units=num_labels + 1)
 		print(' D: dense layer output')
 		print(output)
-
+	
 	scores_out = tf.identity(output[:, :1], name='scores_out')
 	labels_out = tf.identity(output[:, 1:], name='labels_out')
-	return scores_out, labels_out
+	print(' D: scores output')
+	print(scores_out)
+	print(' D: labels output')
+	print(labels_out)
+	return scores_out, labels_out	
 
 
 def get_trainable_variables(): # used in optimizer/minimize (training)
