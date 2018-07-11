@@ -53,7 +53,7 @@ leakage     = 0.01       # leaky relu constant
 N_GPU = 1                # need to change if many gpu!
 
 # verbose
-sample_repetitions = 10   # to get more rows of images of same epoch in same plot
+sample_repetitions = 1   # to get more rows of images of same epoch in same plot
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
 check_in_out    = False  # print disc images and values
@@ -591,6 +591,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
 
 		# recall generator
+		if epoch >= 10:
+			sample_repetitions = 5
+
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
 		if check_in_out:
