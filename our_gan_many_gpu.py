@@ -533,14 +533,15 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				# create latent space
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
-				# plot ima
+				# plot images
 				if j == 0 and i == 0 and check_input_disc:
 					generate_images(img_samples, 100+epoch, repetitions=6)
 					print()
-					print('max value: ', img_samples.max())
-					print('min value: ', img_samples.min())
+					print('max value real img: ', img_samples.max())
+					print('min value real img: ', img_samples.min())
 					print('labels feed epoch: ', epoch)
-					print(img_labels)
+					#print(img_labels)
+
 
 				# train disc
 				disc_cost, dw_cost, d_gradpen, d_lab_cost, _ = session.run([discriminator_loss,
@@ -593,6 +594,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# recall generator
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
+
+		print()
+		print('max value generated img: ', img_samples.max())
+		print('min value generated img: ', img_samples.min())
+
 
 		# print test img
 		generate_images(generated_img, epoch, repetitions=sample_repetitions)
