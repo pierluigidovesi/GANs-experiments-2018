@@ -131,7 +131,7 @@ def generate_images(images, epoch, repetitions = 1):
 	# shape 10x784
 
 	plt.figure(figsize=(10*num_labels, 10*repetitions))
-	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5).astype(int)
+	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
 
 	for j in range(repetitions):
 		for i in range(num_labels):
