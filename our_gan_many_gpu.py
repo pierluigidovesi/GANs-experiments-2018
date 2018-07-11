@@ -586,14 +586,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
 		# END FOR MACRO BATCHES
 
+		# recall generator
+		if epoch >= 10:
+			sample_repetitions = 5
+
 		# generate test latent space (with sample_repetitions to create more rows of samples)
 		test_noise = np.random.randn(num_labels * sample_repetitions, latent_dim)
 		sorted_labels = np.tile(np.eye(num_labels), sample_repetitions).transpose()
 		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
-
-		# recall generator
-		if epoch >= 10:
-			sample_repetitions = 5
 
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
