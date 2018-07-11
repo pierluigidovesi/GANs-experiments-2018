@@ -535,8 +535,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				# plot ima
 				if j == 0 and i == 0:
 					generate_images(img_samples, 100+epoch, repetitions=6)
-					print('max value: ', max(img_samples))
-					print('min value: ', min(img_samples))
+					print('max value: ', img_samples.max())
+					print('min value: ', img_samples.min())
 					print('labels feed epoch: ', epoch)
 					print(img_labels)
 
