@@ -53,9 +53,10 @@ leakage     = 0.01       # leaky relu constant
 N_GPU = 1                # need to change if many gpu!
 
 # verbose
-sample_repetitions = 2   # to get more rows of images of same epoch in same plot
+sample_repetitions = 5   # to get more rows of images of same epoch in same plot
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
+check_input_disc = False
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -533,8 +534,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
 				# plot ima
-				if j == 0 and i == 0:
+				if j == 0 and i == 0 and check_input_disc:
 					generate_images(img_samples, 100+epoch, repetitions=6)
+					print()
 					print('max value: ', img_samples.max())
 					print('min value: ', img_samples.min())
 					print('labels feed epoch: ', epoch)
