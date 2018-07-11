@@ -22,9 +22,9 @@ timer = 11000            # seconds
 np.random.seed(10)
 
 # dataset
-mnist_data   = True      # 28 28 (1)
+mnist_data   = False     # 28 28 (1)
 fashion_data = False     # 28 28 (1)
-cifar10_data = False     # 32 32 (3)
+cifar10_data = True     # 32 32 (3)
 
 
 # gan architecture
@@ -528,8 +528,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
 				# plot ima
-				if j == 0:
-					generate_images(img_samples, np.random.randint(100, 1000), repetitions=6)
+				if j == 0 and i == 0:
+					generate_images(img_samples, 100+epoch, repetitions=6)
 					print('labels feed epoch: ', epoch)
 					print(img_labels)
 
