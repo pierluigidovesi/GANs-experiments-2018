@@ -24,7 +24,7 @@ np.random.seed(10)
 # dataset
 mnist_data   = False     # 28 28 (1)
 fashion_data = False     # 28 28 (1)
-cifar10_data = True     # 32 32 (3)
+cifar10_data = True      # 32 32 (3)
 
 
 # gan architecture
@@ -35,7 +35,7 @@ latent_dim = 128         # input dim (paper 128, but suggested 64)
 
 # Losses parameters
 wasserst_w = 1           # wasserstain weight (always 1)
-grad_pen_w = 10           # in the paper 10
+grad_pen_w = 10          # in the paper 10
 learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
@@ -56,7 +56,7 @@ N_GPU = 1                # need to change if many gpu!
 sample_repetitions = 5   # to get more rows of images of same epoch in same plot
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_in_out    = True  # print disc images and values
+check_in_out    = True   # print disc images and values
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
