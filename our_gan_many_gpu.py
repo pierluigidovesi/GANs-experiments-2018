@@ -34,8 +34,8 @@ disc_iters = 10          # Number of discriminator updates each generator update
 latent_dim = 128         # input dim (paper 128, but suggested 64)
 
 # Losses parameters
-wasserst_w = 0           # wasserstain weight (always 1)
-grad_pen_w = 0           # in the paper 10
+wasserst_w = 1           # wasserstain weight (always 1)
+grad_pen_w = 10           # in the paper 10
 learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
@@ -56,7 +56,7 @@ N_GPU = 1                # need to change if many gpu!
 sample_repetitions = 5   # to get more rows of images of same epoch in same plot
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_input_disc = False
+check_in_out    = True  # print disc images and values
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -131,7 +131,7 @@ def generate_images(images, epoch, repetitions = 1):
 	# shape 10x784
 
 	plt.figure(figsize=(10*num_labels, 10*repetitions))
-	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
+	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5).astype(int)
 
 	for j in range(repetitions):
 		for i in range(num_labels):
@@ -534,7 +534,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
 				# plot images
-				if j == 0 and i == 0 and check_input_disc:
+				if j == 0 and i == 0 and check_in_out:
 					generate_images(img_samples, 100+epoch, repetitions=6)
 					print()
 					print('max value real img: ', img_samples.max())
@@ -594,10 +594,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# recall generator
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
-
-		print()
-		print('max value generated img: ', img_samples.max())
-		print('min value generated img: ', img_samples.min())
+		if check_in_out:
+			print()
+			print('max value generated img: ', img_samples.max())
+			print('min value generated img: ', img_samples.min())
 
 
 		# print test img
