@@ -56,7 +56,7 @@ N_GPU = 1                # need to change if many gpu!
 sample_repetitions = 5   # to get more rows of images of same epoch in same plot
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_in_out    = True   # print disc images and values
+check_in_out    = False  # print disc images and values
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
