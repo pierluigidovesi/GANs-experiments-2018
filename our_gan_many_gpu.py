@@ -148,6 +148,7 @@ def generate_images(images, epoch, repetitions = 1):
 	plt.savefig("epoch_" + str(epoch) + ".png")
 	if always_show_fig:
 		plt.show()
+	plt.close('all')
 
 
 def generator(n_samples, noise_with_labels, reuse=None):
@@ -633,6 +634,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			if always_show_fig:
 				plt.show()  # it works only in interactive mode
+
+			plt.close('all')
 
 			# save txt logs
 			loss_file = open('gen_losses.txt', 'w')
