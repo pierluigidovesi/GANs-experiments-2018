@@ -334,7 +334,12 @@ X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
 
 # merge and one hot train and test labels
-y_train = np.concatenate((y_train, y_test), axis=0)
+if mnist_data or fashion_data:
+	y_train = np.concatenate((y_train, y_test), axis=0)
+
+if cifar10_data:
+	y_train = np.concatenate((y_train[:, 0], y_test[:, 0]), axis=0)
+
 y_hot = np.zeros((y_train.shape[0], num_labels))
 b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
@@ -530,6 +535,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				# plot ima
 				if j == 0 and i == 0:
 					generate_images(img_samples, 100+epoch, repetitions=6)
+					print('max value: ', max(img_samples))
+					print('min value: ', min(img_samples))
 					print('labels feed epoch: ', epoch)
 					print(img_labels)
 
