@@ -1,4 +1,5 @@
 import os, sys
+
 sys.path.append(os.getcwd())
 import numpy as np
 import tensorflow as tf
@@ -9,6 +10,7 @@ import matplotlib.pyplot as plt
 # import tqdm only if previously installed
 try:
 	from tqdm import tqdm
+
 	im_tqdm = True
 except:
 	im_tqdm = False
@@ -16,45 +18,46 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 11000            # seconds
+timer = 11000  # seconds
 
 # random seed
 np.random.seed(10)
 
 # dataset
-mnist_data   = False     # 28 28 (1)
-fashion_data = False    # 28 28 (1)
-cifar10_data = True      # 32 32  3
+mnist_data = False  # 28 28 (1)
+fashion_data = False  # 28 28 (1)
+cifar10_data = True  # 32 32 (3)
 
 # gan architecture
-num_epochs = 50          # tot epochs
-batch_size = 64          # micro batch size
-disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 64          # input dim (paper 128, but suggested 64)
+num_epochs = 50  # tot epochs
+batch_size = 64  # micro batch size
+disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
+latent_dim = 128  # input dim (paper 128, but suggested 64)
 
 # Losses parameters
-wasserst_w = 0           # wasserstain weight (always 1)
-grad_pen_w = 0           # in the paper 10
-learn_rate = 1e-5        # in the paper 1/2e-4
-beta1_opti = 0.5         # in the paper 0.5
-beta2_opti = 0.9         # in the paper 0.9
-label_incr = 1           # increment of labels weight (saturate in 1)
-label_satu = 1           # max label weight
+wasserst_w = 1  # wasserstain weight (always 1)
+grad_pen_w = 10  # in the paper 10
+learn_rate = 2e-4  # in the paper 1/2e-4
+beta1_opti = 0.5  # in the paper 0.5
+beta2_opti = 0.9  # in the paper 0.9
+label_incr = 1  # increment of labels weight (saturate in 1)
+label_satu = 10  # max label weight
 
 # CONV Parameters
-const_filt  = 64         # number of filters
-kernel_size = (5, 5)     # conv kenel size
-strides     = 2          # conv strides
-size_init   = 4          # in the paper 4
-leakage     = 0.01       # leaky relu constant
+const_filt = 64  # number of filters
+kernel_size = (5, 5)  # conv kenel size
+strides = 2  # conv strides
+size_init = 4  # in the paper 4
+leakage = 0.01  # leaky relu constant
 
 # number of GPUs
-N_GPU = 1                # need to change if many gpu!
+N_GPU = 1  # need to change if many gpu!
 
 # verbose
-sample_repetitions = 2   # to get more rows of images of same epoch in same plot
-always_get_loss = True   # get loss each epoch
+sample_repetitions = 10  # to get more rows of images of same epoch in same plot
+always_get_loss = True  # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
+check_in_out = False  # print disc images and values
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -73,21 +76,21 @@ if fashion_data:
 	print('fashion mnist dataset')
 	from keras.datasets import fashion_mnist
 
-	resolution_image   = 28
-	num_labels         = 10
-	channels           = 1
-	channel_first      = False
+	resolution_image = 28
+	num_labels = 10
+	channels = 1
+	channel_first = False
 	channel_first_disc = False
 
 if cifar10_data:
 	print('cifar10 dataset')
 	from keras.datasets import cifar10
 
-	resolution_image   = 32
-	num_labels         = 10
-	channels           = 1
-	channel_first      = False
-	channel_first_disc = True
+	resolution_image = 32
+	num_labels = 10
+	channels = 3
+	channel_first = False
+	channel_first_disc = False
 
 OUTPUT_DIM = int(resolution_image ** 2) * channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
@@ -124,21 +127,21 @@ print('leakage:     ', leakage)
 print('USED GPUs:   ', N_GPU)
 
 
-def generate_images(images, epoch):
+def generate_images(images, epoch, repetitions=1):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
 
-	plt.figure(figsize=(10*num_labels, 10*sample_repetitions))
-	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
+	plt.figure(figsize=(10 * num_labels, 10 * repetitions))
+	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 0.5) + 0.5)
 
-	for j in range(sample_repetitions):
+	for j in range(repetitions):
 		for i in range(num_labels):
 			if channels > 1:
-				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image, channels)
+				new_image = test_image_stack[i + j * num_labels].reshape(resolution_image, resolution_image, channels)
 			else:
-				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
+				new_image = test_image_stack[i + j * num_labels].reshape(resolution_image, resolution_image)
 
-			plt.subplot(sample_repetitions, num_labels, 1 + i + j*num_labels)
+			plt.subplot(repetitions, num_labels, 1 + i + j * num_labels)
 			plt.imshow(new_image)
 			plt.axis("off")
 
@@ -164,7 +167,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 	print(' G: n-filters generator:    ', n_filters)
 
 	with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
-																# get variables of discriminator
+		# get variables of discriminator
 		# ----- Layer1, Dense, Batch, Leaky ----- #
 		print(' G: units dense generator: ', channels * (size_init * size_init) * (n_filters * const_filt))
 
@@ -212,7 +215,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			print(output)
 
 			output = layers.batch_normalization(output, axis=bn_axis)
-			output = tf.maximum(leakage * output, output)
+			output = tf.maximum(leakage * output, output)  # relu
 
 			n_filters = int(n_filters / 2)
 
@@ -253,7 +256,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 	print(' D: n-filters discriminator:    ', n_filters)
 
 	with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
-																	# get variables of generator
+		# get variables of generator
 		print(' D: input')
 		print(images)
 
@@ -291,17 +294,19 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		output = layers.dense(output, units=num_labels + 1)
 		print(' D: dense layer output')
 		print(output)
-	
+
 	scores_out = tf.identity(output[:, :1], name='scores_out')
 	labels_out = tf.identity(output[:, 1:], name='labels_out')
+
 	print(' D: scores output')
 	print(scores_out)
 	print(' D: labels output')
 	print(labels_out)
-	return scores_out, labels_out	
+
+	return scores_out, labels_out
 
 
-def get_trainable_variables(): # used in optimizer/minimize (training)
+def get_trainable_variables():  # used in optimizer/minimize (training)
 	"""
     :return: trainable variables (d_vars, g_vars)
     """
@@ -325,27 +330,27 @@ print("DATASET DIMENSIONS:")
 print(X_train.shape)
 
 # reshape and merge train and test data
-X_train = X_train[:,:,:,0]
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
-X_test  = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
-# X_train = np.concatenate((X_train, X_test), axis=0)
+X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
+X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
 
 # merge and one hot train and test labels
-# y_train = np.concatenate((y_train, y_test), axis=0)
+if mnist_data or fashion_data:
+	y_train = np.concatenate((y_train, y_test), axis=0)
+
+if cifar10_data:
+	y_train = np.concatenate((y_train[:, 0], y_test[:, 0]), axis=0)
+
 y_hot = np.zeros((y_train.shape[0], num_labels))
 b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
 y_train = y_hot
 
-print("DATASET DIMENSIONS 2:")
-print(X_train.shape)
-
 # ------------------------------------------------------------------------------ #
 
 # TENSORFLOW SESSION
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
-
 	# TEST SAMPLE GENERATION SESSION
 	print('----------------- G: TEST SAMPLES    -----------------')
 	test_input = tf.placeholder(tf.float32, shape=[sample_repetitions * num_labels, latent_dim + num_labels])
@@ -355,16 +360,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	label_weights = tf.placeholder(tf.float32, shape=())
 
 	all_input_generator = tf.placeholder(tf.float32, shape=[batch_size, latent_dim + num_labels])
-	all_real_data       = tf.placeholder(tf.float32, shape=[batch_size, OUTPUT_DIM])
-	all_real_labels     = tf.placeholder(tf.float32, shape=[batch_size, num_labels])
+	all_real_data = tf.placeholder(tf.float32, shape=[batch_size, OUTPUT_DIM])
+	all_real_labels = tf.placeholder(tf.float32, shape=[batch_size, num_labels])
 
 	# split over GPUs
-	binder_real_data       = tf.split(all_real_data, len(DEVICES))
-	binder_real_labels     = tf.split(all_real_labels, len(DEVICES))
+	binder_real_data = tf.split(all_real_data, len(DEVICES))
+	binder_real_labels = tf.split(all_real_labels, len(DEVICES))
 	binder_input_generator = tf.split(all_input_generator, len(DEVICES))
 
 	# list used for mean over GPUs
-	generator_loss_list     = []
+	generator_loss_list = []
 	discriminator_loss_list = []
 
 	# split batch_size
@@ -384,7 +389,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		# choose what GPU
 		with tf.device(device):
-
 			# ----------------------------------- Outputs ----------------------------------- #
 			print('----------------- G: FAKE SAMPLES    -----------------')
 			fake_samples = generator(batch_size, input_generator, reuse=True)
@@ -453,7 +457,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=learn_rate,
 	                                                 beta1=beta1_opti,
-	                                                 beta2=beta2_opti).minimize(discriminator_loss_list, var_list=d_vars)
+	                                                 beta2=beta2_opti).minimize(discriminator_loss_list,
+	                                                                            var_list=d_vars)
 
 	# ------------------------------------ Train ---------------------------------------------- #
 	print(' - - - - - - - - - - TRAIN - - - - - - - - - - ')
@@ -490,12 +495,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	for epoch in range(num_epochs):
 
 		start_time = time.time()
-		print(" ----------> epoch: ", epoch, '- iterations: ', num_macro_batches*epoch)
+		print(" ----------> epoch: ", epoch, '- iterations: ', num_macro_batches * epoch)
 
-		#shuffle dataset
-		#np.random.shuffle(indices)
-		#X_train = X_train[indices]
-		#y_train = y_train[indices]
+		# shuffle dataset
+		np.random.shuffle(indices)
+		X_train = X_train[indices]
+		y_train = y_train[indices]
 
 		# MACRO BATCHES FOR
 		for i in tqdm(range(num_macro_batches)):  # macro batches
@@ -528,16 +533,26 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				# create latent space
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
+				# plot images
+				if j == 0 and i == 0 and check_in_out:
+					generate_images(img_samples, 100 + epoch, repetitions=6)
+					print()
+					print('max value real img: ', img_samples.max())
+					print('min value real img: ', img_samples.min())
+				# print('labels feeded for epoch: ', epoch)
+				# print(img_labels)
+
 				# train disc
 				disc_cost, dw_cost, d_gradpen, d_lab_cost, _ = session.run([discriminator_loss,
 				                                                            disc_wasserstein_loss,
 				                                                            gradient_penalty,
 				                                                            disc_labels_loss,
 				                                                            discriminator_optimizer],
-				                                                           feed_dict={all_input_generator: discriminator_labels_with_noise,
-				                                                                      all_real_data: img_samples,
-				                                                                      all_real_labels: img_labels,
-				                                                                      label_weights: labels_incremental_weight})
+				                                                           feed_dict={
+					                                                           all_input_generator: discriminator_labels_with_noise,
+					                                                           all_real_data: img_samples,
+					                                                           all_real_labels: img_labels,
+					                                                           label_weights: labels_incremental_weight})
 
 				# append losses means (each loss has batch_size element)
 				d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mean(d_lab_cost)])
@@ -579,9 +594,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# recall generator
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
+		if check_in_out:
+			print()
+			print('max value generated img: ', img_samples.max())
+			print('min value generated img: ', img_samples.min())
 
 		# print test img
-		generate_images(generated_img, epoch)
+		generate_images(generated_img, epoch, repetitions=sample_repetitions)
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
@@ -589,23 +608,23 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# generator vs discriminator loss
 			plt.figure()
 			disc_line = plt.plot(np.asarray([item[0] for item in discriminator_history]), label='DISC')
-			gen_line  = plt.plot(np.asarray([item[0] for item in generator_history]), label='GEN')
+			gen_line = plt.plot(np.asarray([item[0] for item in generator_history]), label='GEN')
 			plt.legend()
 			plt.savefig("GD_losses.png")
 
 			# discriminator losses
 			plt.figure()
-			disc_sum  = plt.plot(np.array([item[0] for item in discriminator_history]), label='ALL')
-			disc_w    = plt.plot(np.array([item[1] for item in discriminator_history]), label='WASS')
+			disc_sum = plt.plot(np.array([item[0] for item in discriminator_history]), label='ALL')
+			disc_w = plt.plot(np.array([item[1] for item in discriminator_history]), label='WASS')
 			disc_grad = plt.plot(np.array([item[2] for item in discriminator_history]), label='GRAD')
-			disc_lab  = plt.plot(np.array([item[3] for item in discriminator_history]), label='LAB')
+			disc_lab = plt.plot(np.array([item[3] for item in discriminator_history]), label='LAB')
 			plt.legend()
 			plt.savefig("D_losses.png")
 
 			# generator losses
 			plt.figure()
 			gen_sum = plt.plot(np.array([item[0] for item in generator_history]), label='ALL')
-			gen_w   = plt.plot(np.array([item[1] for item in generator_history]), label='WASS')
+			gen_w = plt.plot(np.array([item[1] for item in generator_history]), label='WASS')
 			gen_lab = plt.plot(np.array([item[2] for item in generator_history]), label='LAB')
 			plt.legend()
 			plt.savefig("G_losses.png")
@@ -631,5 +650,5 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			epoch = num_epochs
 			print('time out!')
 
-	# END FOR EPOCHS
+# END FOR EPOCHS
 # END SESSION

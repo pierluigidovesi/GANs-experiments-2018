@@ -40,7 +40,7 @@ learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
 label_incr = 1           # increment of labels weight (saturate in 1)
-label_satu = 5           # max label weight
+label_satu = 10           # max label weight
 
 # CONV Parameters
 const_filt  = 64         # number of filters
