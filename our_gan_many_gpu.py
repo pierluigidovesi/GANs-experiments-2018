@@ -131,7 +131,7 @@ def generate_images(images, epoch, repetitions = 1):
 	# shape 10x784
 
 	plt.figure(figsize=(10*num_labels, 10*repetitions))
-	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 127.5) + 127.5)
+	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 0.5) + 0.5)
 
 	for j in range(repetitions):
 		for i in range(num_labels):
@@ -539,9 +539,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 					print()
 					print('max value real img: ', img_samples.max())
 					print('min value real img: ', img_samples.min())
-					print('labels feed epoch: ', epoch)
-					#print(img_labels)
-
+					# print('labels feeded for epoch: ', epoch)
+					# print(img_labels)
 
 				# train disc
 				disc_cost, dw_cost, d_gradpen, d_lab_cost, _ = session.run([discriminator_loss,
@@ -598,7 +597,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			print()
 			print('max value generated img: ', img_samples.max())
 			print('min value generated img: ', img_samples.min())
-
 
 		# print test img
 		generate_images(generated_img, epoch, repetitions=sample_repetitions)
