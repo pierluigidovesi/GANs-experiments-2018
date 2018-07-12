@@ -30,7 +30,7 @@ cifar10_data = True      # 32 32 (3)
 # gan architecture
 num_epochs = 50          # tot epochs
 batch_size = 64          # micro batch size
-disc_iters = 100          # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim (paper 128, but suggested 64)
 
 # Losses parameters
@@ -132,7 +132,7 @@ def generate_images(images, epoch, repetitions = 1):
 	# shape 10x784
 
 	names = ['airplane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-	plt.figure(figsize=(10*num_labels, 10*repetitions+5))
+	plt.figure(figsize=(10*num_labels, 10*repetitions))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 0.5) + 0.5)
 
 	for j in range(repetitions):
