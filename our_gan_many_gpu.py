@@ -40,7 +40,7 @@ learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
 label_incr = 1           # increment of labels weight (saturate in 1)
-label_satu = 10          # max label weight
+label_satu = 1           # max label weight
 
 # CONV Parameters
 const_filt  = 64         # number of filters
@@ -53,10 +53,11 @@ leakage     = 0.01       # leaky relu constant
 N_GPU = 1                # need to change if many gpu!
 
 # verbose
+fixed_noise = True       # always use same noise for image samples
 sample_repetitions = 5   # to get more rows of images of same epoch in same plot (always put highest value)
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_in_out    = False  # print disc images and values
+check_in_out    = True   # print disc images and values
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -130,6 +131,7 @@ def generate_images(images, epoch, repetitions = 1):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
 
+	names = ['airplane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 	plt.figure(figsize=(10*num_labels, 10*repetitions))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 0.5) + 0.5)
 
@@ -139,6 +141,8 @@ def generate_images(images, epoch, repetitions = 1):
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image, channels)
 			else:
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
+			if j == 0:
+				plt.title(names[i])
 
 			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
 			plt.imshow(new_image)
@@ -593,19 +597,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			plot_rows = 1
 
 		# generate test latent space (with sample_repetitions to create more rows of samples)
-		test_noise = np.random.randn(num_labels * sample_repetitions, latent_dim)
-		sorted_labels = np.tile(np.eye(num_labels), sample_repetitions).transpose()
-		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
+		if not fixed_noise or epoch == 0:
+			test_noise = np.random.randn(num_labels * sample_repetitions, latent_dim)
+			sorted_labels = np.tile(np.eye(num_labels), sample_repetitions).transpose()
+			sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
 
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
-		if check_in_out:
-			print()
-			print('max value generated img: ', img_samples.max())
-			print('min value generated img: ', img_samples.min())
-
 		# print test img
 		generate_images(generated_img, epoch, repetitions=plot_rows)
+
+		if check_in_out:
+			print()
+			print('max value generated img: ', generated_img.max())
+			print('min value generated img: ', generated_img.min())
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
