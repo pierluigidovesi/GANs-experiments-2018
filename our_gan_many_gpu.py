@@ -502,6 +502,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	for epoch in range(num_epochs):
 
 		start_time = time.time()
+		print()
 		print(" ----------> epoch: ", epoch, '- iterations: ', num_macro_batches*epoch)
 
 		#shuffle dataset
@@ -605,12 +606,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# plot images
 		if check_in_out:
 			# generate_images(img_samples, 100+epoch, repetitions=6)
-			print()
 			print('max value real img (last batch): ', img_samples.max())
 			print('min value real img (last batch): ', img_samples.min())
-		# print('labels feeded for epoch: ', epoch)
-		# print(img_labels)
-			print()
+			# print('labels feeded for epoch: ', epoch)
+			# print(img_labels)
 			print('max value generated img (all):   ', np.max(generated_img))
 			print('min value generated img (all):   ', np.min(generated_img))
 
@@ -661,8 +660,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		print(' disc cost  = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
 
 		if total_time >= timer:
-			epoch = num_epochs
-			print('time out!')
+			print(' - - - - - TIME OUT! - - - - - ')
+			break
 
 	# END FOR EPOCHS
 # END SESSION
