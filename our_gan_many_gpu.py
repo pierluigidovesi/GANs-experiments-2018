@@ -35,7 +35,7 @@ latent_dim = 128         # input dim (paper 128, but suggested 64)
 
 # Losses parameters
 wasserst_w = 1           # wasserstain weight (always 1)
-grad_pen_w = 20          # in the paper 10
+grad_pen_w = 10          # in the paper 10
 learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
@@ -586,11 +586,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
 		# END FOR MACRO BATCHES
 
-		# recall generator
-		if epoch >= 10:
-			plot_rows = sample_repetitions
-		else:
-			plot_rows = 1
+		#if epoch >= 10:
+		#	plot_rows = sample_repetitions
+		#else:
+		#	plot_rows = 1
+		plot_rows = sample_repetitions
 
 		# generate test latent space (with sample_repetitions to create more rows of samples)
 		if not fixed_noise or epoch == 0:
@@ -598,6 +598,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			sorted_labels = np.tile(np.eye(num_labels), sample_repetitions).transpose()
 			sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
 
+		# recall generator
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
 		# print test img
