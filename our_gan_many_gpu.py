@@ -53,7 +53,7 @@ leakage     = 0.01       # leaky relu constant
 N_GPU = 1                # need to change if many gpu!
 
 # verbose
-sample_repetitions = 1   # to get more rows of images of same epoch in same plot
+sample_repetitions = 5   # to get more rows of images of same epoch in same plot
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
 check_in_out    = False  # print disc images and values
@@ -587,8 +587,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# END FOR MACRO BATCHES
 
 		# recall generator
-		if epoch >= 10:
-			sample_repetitions = 5
+		if epoch >= 1:
+			plot_rows = sample_repetitions
+		else:
+			plot_rows = 1
 
 		# generate test latent space (with sample_repetitions to create more rows of samples)
 		test_noise = np.random.randn(num_labels * sample_repetitions, latent_dim)
@@ -603,7 +605,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			print('min value generated img: ', img_samples.min())
 
 		# print test img
-		generate_images(generated_img, epoch, repetitions=sample_repetitions)
+		generate_images(generated_img, epoch, repetitions=plot_rows)
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
