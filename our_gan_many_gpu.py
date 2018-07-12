@@ -132,7 +132,7 @@ def generate_images(images, epoch, repetitions = 1):
 	# shape 10x784
 
 	names = ['airplane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-	plt.figure(figsize=(10*num_labels, 10*repetitions))
+	plt.figure(figsize=(10*num_labels, 10*repetitions+5))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 0.5) + 0.5)
 
 	for j in range(repetitions):
@@ -145,7 +145,7 @@ def generate_images(images, epoch, repetitions = 1):
 			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
 
 			if j == 0:
-				plt.title(names[i], fontsize=10)
+				plt.title(names[i], fontsize=200)
 
 			plt.imshow(new_image)
 			plt.axis("off")
