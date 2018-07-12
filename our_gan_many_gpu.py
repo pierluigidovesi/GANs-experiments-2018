@@ -40,7 +40,7 @@ learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
 label_incr = 1           # increment of labels weight (saturate in 1)
-label_satu = 10           # max label weight
+label_satu = 10          # max label weight
 
 # CONV Parameters
 const_filt  = 64         # number of filters
@@ -53,7 +53,7 @@ leakage     = 0.01       # leaky relu constant
 N_GPU = 1                # need to change if many gpu!
 
 # verbose
-sample_repetitions = 5   # to get more rows of images of same epoch in same plot
+sample_repetitions = 5   # to get more rows of images of same epoch in same plot (always put highest value)
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
 check_in_out    = False  # print disc images and values
@@ -68,7 +68,7 @@ if mnist_data:
 	resolution_image   = 28
 	num_labels         = 10
 	channels           = 1
-	channel_first      = False
+	channel_first_gen  = False
 	channel_first_disc = False
 
 if fashion_data:
@@ -78,7 +78,7 @@ if fashion_data:
 	resolution_image   = 28
 	num_labels         = 10
 	channels           = 1
-	channel_first      = False
+	channel_first_gen  = False
 	channel_first_disc = False
 
 if cifar10_data:
@@ -88,7 +88,7 @@ if cifar10_data:
 	resolution_image   = 32
 	num_labels         = 10
 	channels           = 3
-	channel_first      = False
+	channel_first_gen  = False
 	channel_first_disc = False
 
 OUTPUT_DIM = int(resolution_image ** 2) * channels
@@ -99,7 +99,7 @@ DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
 print('res_image:   ', resolution_image)
 print('num_labels:  ', num_labels)
 print('channels:    ', channels)
-print('ch_first:    ', channel_first)
+print('ch_first:    ', channel_first_gen)
 print('ch_first_d:  ', channel_first_disc)
 
 print('2. GAN ARCHITECTURE')
@@ -180,7 +180,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		print(' G: dense layer')
 		print(output)
 
-		if channel_first:
+		if channel_first_gen:
 			# size: 128 x 7 x 7
 			output = tf.reshape(output, (-1, n_filters * const_filt * channels, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
@@ -197,7 +197,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 			if resolution_image == 28 and size_init * (1 + i) == 8:
 
-				if channel_first:
+				if channel_first_gen:
 					output = output[:, :, :7, :7]
 				else:
 					output = output[:, :7, :7, :]
@@ -587,7 +587,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# END FOR MACRO BATCHES
 
 		# recall generator
-		if epoch >= 1:
+		if epoch >= 10:
 			plot_rows = sample_repetitions
 		else:
 			plot_rows = 1
