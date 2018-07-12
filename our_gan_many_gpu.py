@@ -35,7 +35,7 @@ latent_dim = 128         # input dim (paper 128, but suggested 64)
 
 # Losses parameters
 wasserst_w = 1           # wasserstain weight (always 1)
-grad_pen_w = 10          # in the paper 10
+grad_pen_w = 20          # in the paper 10
 learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
