@@ -145,7 +145,7 @@ def generate_images(images, epoch, repetitions = 1):
 			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
 
 			if j == 0:
-				plt.title(names[i], fontsize=200)
+				plt.title(names[i], fontsize=100)
 
 			plt.imshow(new_image)
 			plt.axis("off")
@@ -540,14 +540,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				# create latent space
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
-				# plot images
-				if j == 0 and i == 0 and check_in_out:
-					#generate_images(img_samples, 100+epoch, repetitions=6)
-					print()
-					print('max value real img: ', img_samples.max())
-					print('min value real img: ', img_samples.min())
-					# print('labels feeded for epoch: ', epoch)
-					# print(img_labels)
+
 
 				# train disc
 				disc_cost, dw_cost, d_gradpen, d_lab_cost, _ = session.run([discriminator_loss,
@@ -609,10 +602,17 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# print test img
 		generate_images(generated_img, epoch, repetitions=plot_rows)
 
+		# plot images
 		if check_in_out:
+			# generate_images(img_samples, 100+epoch, repetitions=6)
 			print()
-			print('max value generated img: ', np.max(generated_img))
-			print('min value generated img: ', np.min(generated_img))
+			print('max value real img (last batch): ', img_samples.max())
+			print('min value real img (last batch): ', img_samples.min())
+		# print('labels feeded for epoch: ', epoch)
+		# print(img_labels)
+			print()
+			print('max value generated img (all):   ', np.max(generated_img))
+			print('min value generated img (all):   ', np.min(generated_img))
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
