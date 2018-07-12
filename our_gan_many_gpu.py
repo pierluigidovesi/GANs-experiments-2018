@@ -141,8 +141,9 @@ def generate_images(images, epoch, repetitions = 1):
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image, channels)
 			else:
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
+
 			if j == 0:
-				plt.title(names[i])
+				plt.title(names[i-1], fontsize=10)
 
 			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
 			plt.imshow(new_image)
@@ -609,8 +610,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		if check_in_out:
 			print()
-			print('max value generated img: ', generated_img.max())
-			print('min value generated img: ', generated_img.min())
+			print('max value generated img: ', np.max(generated_img))
+			print('min value generated img: ', np.min(generated_img))
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
