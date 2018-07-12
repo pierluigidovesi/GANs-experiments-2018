@@ -141,7 +141,7 @@ def generate_images(images, epoch, repetitions = 1):
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image, channels)
 			else:
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
-				
+
 			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
 
 			if j == 0:
@@ -542,7 +542,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 				# plot images
 				if j == 0 and i == 0 and check_in_out:
-					generate_images(img_samples, 100+epoch, repetitions=6)
+					#generate_images(img_samples, 100+epoch, repetitions=6)
 					print()
 					print('max value real img: ', img_samples.max())
 					print('min value real img: ', img_samples.min())
