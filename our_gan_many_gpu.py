@@ -141,11 +141,12 @@ def generate_images(images, epoch, repetitions = 1):
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image, channels)
 			else:
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
+				
+			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
 
 			if j == 0:
-				plt.title(names[i-1], fontsize=10)
+				plt.title(names[i], fontsize=10)
 
-			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
 			plt.imshow(new_image)
 			plt.axis("off")
 
