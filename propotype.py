@@ -39,11 +39,11 @@ grad_pen_w = 10          # in the paper 10
 learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
-label_incr = 10           # increment of labels weight (saturate in 1)
-label_satu = 100           # max label weight
+label_incr = 1           # increment of labels weight (saturate in 1)
+label_satu = 1           # max label weight
 
 # CONV Parameters
-const_filt  = 64         # number of filters
+const_filt  = 128         # number of filters
 kernel_size = (5, 5)     # conv kenel size
 strides     = 2          # conv strides
 size_init   = 4          # in the paper 4
@@ -53,10 +53,11 @@ leakage     = 0.01       # leaky relu constant
 N_GPU = 1                # need to change if many gpu!
 
 # verbose
-sample_repetitions = 1   # to get more rows of images of same epoch in same plot
+fixed_noise = True       # always use same noise for image samples
+sample_repetitions = 5   # to get more rows of images of same epoch in same plot (always put highest value)
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_in_out    = False  # print disc images and values
+check_in_out    = True   # print disc images and values
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -68,7 +69,7 @@ if mnist_data:
 	resolution_image   = 28
 	num_labels         = 10
 	channels           = 1
-	channel_first      = False
+	channel_first_gen  = False
 	channel_first_disc = False
 
 if fashion_data:
@@ -78,7 +79,7 @@ if fashion_data:
 	resolution_image   = 28
 	num_labels         = 10
 	channels           = 1
-	channel_first      = False
+	channel_first_gen  = False
 	channel_first_disc = False
 
 if cifar10_data:
@@ -88,7 +89,7 @@ if cifar10_data:
 	resolution_image   = 32
 	num_labels         = 10
 	channels           = 3
-	channel_first      = False
+	channel_first_gen  = False
 	channel_first_disc = False
 
 OUTPUT_DIM = int(resolution_image ** 2) * channels
@@ -99,7 +100,7 @@ DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
 print('res_image:   ', resolution_image)
 print('num_labels:  ', num_labels)
 print('channels:    ', channels)
-print('ch_first:    ', channel_first)
+print('ch_first:    ', channel_first_gen)
 print('ch_first_d:  ', channel_first_disc)
 
 print('2. GAN ARCHITECTURE')
@@ -130,6 +131,7 @@ def generate_images(images, epoch, repetitions = 1):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
 	# shape 10x784
 
+	names = ['airplane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 	plt.figure(figsize=(10*num_labels, 10*repetitions))
 	test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 0.5) + 0.5)
 
@@ -141,6 +143,10 @@ def generate_images(images, epoch, repetitions = 1):
 				new_image = test_image_stack[i+j*num_labels].reshape(resolution_image, resolution_image)
 
 			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
+
+			if j == 0:
+				plt.title(names[i], fontsize=100)
+
 			plt.imshow(new_image)
 			plt.axis("off")
 
@@ -180,7 +186,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		print(' G: dense layer')
 		print(output)
 
-		if channel_first:
+		if channel_first_gen:
 			# size: 128 x 7 x 7
 			output = tf.reshape(output, (-1, n_filters * const_filt * channels, size_init, size_init))
 			bn_axis = 1  # [0, 2, 3]  # first
@@ -197,7 +203,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
 			if resolution_image == 28 and size_init * (1 + i) == 8:
 
-				if channel_first:
+				if channel_first_gen:
 					output = output[:, :, :7, :7]
 				else:
 					output = output[:, :7, :7, :]
@@ -496,6 +502,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	for epoch in range(num_epochs):
 
 		start_time = time.time()
+		print()
 		print(" ----------> epoch: ", epoch, '- iterations: ', num_macro_batches*epoch)
 
 		#shuffle dataset
@@ -534,14 +541,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 				# create latent space
 				discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
-				# plot images
-				if j == 0 and i == 0 and check_in_out:
-					generate_images(img_samples, 100+epoch, repetitions=6)
-					print()
-					print('max value real img: ', img_samples.max())
-					print('min value real img: ', img_samples.min())
-					# print('labels feeded for epoch: ', epoch)
-					# print(img_labels)
+
 
 				# train disc
 				disc_cost, dw_cost, d_gradpen, d_lab_cost, _ = session.run([discriminator_loss,
@@ -586,24 +586,33 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
 		# END FOR MACRO BATCHES
 
-		# recall generator
-		if epoch >= 10:
-			sample_repetitions = 5
+		#if epoch >= 10:
+		#	plot_rows = sample_repetitions
+		#else:
+		#	plot_rows = 1
+		plot_rows = sample_repetitions
 
 		# generate test latent space (with sample_repetitions to create more rows of samples)
-		test_noise = np.random.randn(num_labels * sample_repetitions, latent_dim)
-		sorted_labels = np.tile(np.eye(num_labels), sample_repetitions).transpose()
-		sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
+		if not fixed_noise or epoch == 0:
+			test_noise = np.random.randn(num_labels * sample_repetitions, latent_dim)
+			sorted_labels = np.tile(np.eye(num_labels), sample_repetitions).transpose()
+			sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
 
+		# recall generator
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
-		if check_in_out:
-			print()
-			print('max value generated img: ', img_samples.max())
-			print('min value generated img: ', img_samples.min())
-
 		# print test img
-		generate_images(generated_img, epoch, repetitions=sample_repetitions)
+		generate_images(generated_img, epoch, repetitions=plot_rows)
+
+		# plot images
+		if check_in_out:
+			# generate_images(img_samples, 100+epoch, repetitions=6)
+			print('max value real img (last batch): ', img_samples.max())
+			print('min value real img (last batch): ', img_samples.min())
+			# print('labels feeded for epoch: ', epoch)
+			# print(img_labels)
+			print('max value generated img (all):   ', np.max(generated_img))
+			print('min value generated img (all):   ', np.min(generated_img))
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
@@ -652,8 +661,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		print(' disc cost  = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
 
 		if total_time >= timer:
-			epoch = num_epochs
-			print('time out!')
+			print(' - - - - - TIME OUT! - - - - - ')
+			break
 
 	# END FOR EPOCHS
 # END SESSION
