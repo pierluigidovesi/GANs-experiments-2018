@@ -43,7 +43,7 @@ label_incr = 1           # increment of labels weight (saturate in 1)
 label_satu = 1           # max label weight
 
 # CONV Parameters
-const_filt  = 64         # number of filters
+const_filt  = 64*2         # number of filters
 kernel_size = (5, 5)     # conv kenel size
 strides     = 2          # conv strides
 size_init   = 4          # in the paper 4
