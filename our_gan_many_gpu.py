@@ -597,6 +597,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			test_noise = np.random.randn(num_labels * sample_repetitions, latent_dim)
 			sorted_labels = np.tile(np.eye(num_labels), sample_repetitions).transpose()
 			sorted_labels_with_noise = np.concatenate((sorted_labels, test_noise), axis=1)
+			print(sorted_labels_with_noise)
 
 		# recall generator
 		generated_img = session.run([test_samples],
