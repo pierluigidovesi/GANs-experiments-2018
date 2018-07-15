@@ -29,7 +29,7 @@ cifar10_data = True      # 32 32 (3)
 
 
 # gan architecture
-num_epochs = 50          # tot epochs
+num_epochs = 0          # tot epochs
 batch_size = 64          # micro batch size
 disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim (paper 128, but suggested 64)
