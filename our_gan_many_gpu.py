@@ -33,7 +33,7 @@ num_epochs = 0          # tot epochs
 batch_size = 64          # micro batch size
 disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim (paper 128, but suggested 64)
-is_class_r = 1000
+is_class_r = 100
 
 # Losses parameters
 wasserst_w = 1           # wasserstain weight (always 1)
