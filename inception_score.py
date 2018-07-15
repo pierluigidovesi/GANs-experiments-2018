@@ -22,6 +22,7 @@ def main(images):
 	global tfgan
 	tfgan = tf.contrib.gan
 	session = tf.InteractiveSession()
+	global BATCH_SIZE
 	BATCH_SIZE = 64
 	# Run images through Inception.
 	inception_images = tf.placeholder(tf.float32, [BATCH_SIZE, 3, None, None])
