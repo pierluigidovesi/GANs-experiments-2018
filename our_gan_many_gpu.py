@@ -667,5 +667,5 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 # inception score
 print(X_train_original.shape)
-is_mean, is_std = inception_score.main(X_train_original[:1000].transpose([0, 3, 1, 2]))
+is_mean, is_std = inception_score.main(X_train_original.transpose([0, 3, 1, 2]))
 print('inception score: ', is_mean, ' std: ', is_std)
