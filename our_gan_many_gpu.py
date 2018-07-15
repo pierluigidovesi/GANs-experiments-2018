@@ -337,6 +337,7 @@ print("DATASET DIMENSIONS:")
 print(X_train.shape)
 
 # reshape and merge train and test data
+X_train_original = X_train
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test  = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
@@ -664,6 +665,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 # END SESSION
 
 # inception score
-print(X_train[:1000].shape)
-is_mean, is_std = inception_score.get_inpception_score(X_train[:1000].transpose([0, 3, 1, 2]))
+print(X_train_original[:1000].shape)
+is_mean, is_std = inception_score.get_inpception_score(X_train_original[:1000].transpose([0, 3, 1, 2]))
 print('inception score: ', is_mean, ' std: ', is_std)
