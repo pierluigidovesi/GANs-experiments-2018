@@ -17,19 +17,19 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 11000          # seconds
+timer = 3600            # seconds
 
 # random seed
-np.random.seed(100)
+seed = 100
+np.random.seed(seed)
 
-# dataset
+# Dataset
 mnist_data   = False     # 28 28 (1)
 fashion_data = False     # 28 28 (1)
 cifar10_data = True      # 32 32 (3)
 
-
-# gan architecture
-num_epochs = 0           # tot epochs
+# GAN architecture
+num_epochs = 50          # tot epochs
 batch_size = 64          # micro batch size
 disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim (paper 128, but suggested 64)
@@ -63,9 +63,7 @@ check_in_out    = True   # print disc images and values
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
-print('1. DATASET SETTINGS')
 if mnist_data:
-	print('mnist dataset')
 	from keras.datasets import mnist
 
 	resolution_image   = 28
@@ -75,7 +73,6 @@ if mnist_data:
 	channel_first_disc = False
 
 if fashion_data:
-	print('fashion mnist dataset')
 	from keras.datasets import fashion_mnist
 
 	resolution_image   = 28
@@ -85,7 +82,6 @@ if fashion_data:
 	channel_first_disc = False
 
 if cifar10_data:
-	print('cifar10 dataset')
 	from keras.datasets import cifar10
 
 	resolution_image   = 32
@@ -97,37 +93,61 @@ if cifar10_data:
 OUTPUT_DIM = int(resolution_image ** 2) * channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
 
+
 # ---- PRINT ----
+def print_log():
 
-print('res_image:   ', resolution_image)
-print('num_labels:  ', num_labels)
-print('channels:    ', channels)
-print('ch_first:    ', channel_first_gen)
-print('ch_first_d:  ', channel_first_disc)
+	print('1. DATASET SETTINGS')
+	if mnist_data:
+		print('mnist dataset')
+	if fashion_data:
+		print('fashion mnist dataset')
+	if cifar10_data:
+		print('cifar10 dataset')
+	print('res_image:   ', resolution_image)
+	print('num_labels:  ', num_labels)
+	print('channels:    ', channels)
+	print('ch_first:    ', channel_first_gen)
+	print('ch_first_d:  ', channel_first_disc)
 
-print('2. GAN ARCHITECTURE')
-print('num_epochs:  ', num_epochs)
-print('batch_size:  ', batch_size)
-print('disc_iters:  ', disc_iters)
-print('latent_dim:  ', latent_dim)
+	print('2. GAN ARCHITECTURE')
+	print('num_epochs:  ', num_epochs)
+	print('batch_size:  ', batch_size)
+	print('disc_iters:  ', disc_iters)
+	print('latent_dim:  ', latent_dim)
+	print('is_n_batch:  ', is_n_batch)
 
-print('3. LOSSES PARAMETERS')
-print('grad_pen_w:  ', grad_pen_w)
-print('learn rate:  ', learn_rate)
-print('beta1_opti:  ', beta1_opti)
-print('beta2_opti:  ', beta2_opti)
-print('label_incr:  ', label_incr)
-print('label_satu:  ', label_satu)
+	print('3. LOSSES PARAMETERS')
+	print('wasserst_w:  ', wasserst_w)
+	print('grad_pen_w:  ', grad_pen_w)
+	print('learn rate:  ', learn_rate)
+	print('beta1_opti:  ', beta1_opti)
+	print('beta2_opti:  ', beta2_opti)
+	print('label_incr:  ', label_incr)
+	print('label_satu:  ', label_satu)
 
-print('4. CONV PARAMETERS')
-print('const_filt:  ', const_filt)
-print('kernel_size: ', kernel_size)
-print('strides:     ', strides)
-print('size_init:   ', size_init)
-print('leakage:     ', leakage)
+	print('4. CONV PARAMETERS')
+	print('const_filt:  ', const_filt)
+	print('kernel_size: ', kernel_size)
+	print('strides:     ', strides)
+	print('size_init:   ', size_init)
+	print('leakage:     ', leakage)
 
-print('USED GPUs:   ', N_GPU)
+	print('5. MISCELLANEOUS')
+	print('used GPUs:   ', N_GPU)
+	print('random seed: ', seed)
+	print('sample rep:  ', sample_repetitions)
 
+# print settings
+print_log()
+
+# save txt logs
+orig_stdout = sys.stdout
+f = open('settings_log.txt', 'w')
+sys.stdout = f
+print_log()
+sys.stdout = orig_stdout
+f.close()
 
 def generate_images(images, epoch, repetitions = 1):
 	# output gen: (-1,1) --> (-127.5, 127.5) --> (0, 255)
@@ -688,5 +708,4 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 is_image = np.array(is_img).reshape(-1, resolution_image, resolution_image, channels)
 print('Inception score images shape: ', is_image.shape)
 is_mean, is_std = inception_score.main(is_image.transpose([0, 3, 1, 2]))
-print('Inception score:')
-print('mean: ', is_mean, ' std: ', is_std)
+print('INCEPTION SCORE: mean: ', is_mean, ' std: ', is_std)
