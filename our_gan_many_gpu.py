@@ -1,3 +1,4 @@
+import inception_score
 import os, sys
 sys.path.append(os.getcwd())
 import numpy as np
@@ -16,7 +17,7 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 11000            # seconds
+timer = 1          # seconds
 
 # random seed
 np.random.seed(100)
@@ -586,12 +587,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
 		# END FOR MACRO BATCHES
 
-		#if epoch >= 10:
-		#	plot_rows = sample_repetitions
-		#else:
-		#	plot_rows = 1
-		plot_rows = sample_repetitions
-
 		# generate test latent space (with sample_repetitions to create more rows of samples)
 		if not fixed_noise or epoch == 0:
 			test_noise = np.random.randn(num_labels * sample_repetitions, latent_dim)
@@ -602,6 +597,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		generated_img = session.run([test_samples],
 		                            feed_dict={test_input: sorted_labels_with_noise})
 		# print test img
+		plot_rows = sample_repetitions
 		generate_images(generated_img, epoch, repetitions=plot_rows)
 
 		# plot images
@@ -666,3 +662,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	# END FOR EPOCHS
 # END SESSION
+
+# inception score
+is_mean, is_std = inception_score.get_inception_score(X_train[:1000].reshape([0, 3, 1, 2]))
+print('inception score: ', is_mean, ' std: ', is_std)
