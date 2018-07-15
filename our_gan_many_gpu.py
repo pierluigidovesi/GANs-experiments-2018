@@ -34,16 +34,16 @@ disc_iters = 10          # Number of discriminator updates each generator update
 latent_dim = 128         # input dim (paper 128, but suggested 64)
 
 # Losses parameters
-wasserst_w = 1           # wasserstain weight (always 1)
-grad_pen_w = 30          # in the paper 10
+wasserst_w = 0           # wasserstain weight (always 1)
+grad_pen_w = 0           # in the paper 10
 learn_rate = 2e-4        # in the paper 1/2e-4
 beta1_opti = 0.5         # in the paper 0.5
 beta2_opti = 0.9         # in the paper 0.9
-label_incr = 0           # increment of labels weight (saturate in 1)
+label_incr = 1           # increment of labels weight (saturate in 1)
 label_satu = 1           # max label weight
 
 # CONV Parameters
-const_filt  = 96         # number of filters (paper 64)
+const_filt  = 64         # number of filters (paper 64)
 kernel_size = (5, 5)     # conv kenel size
 strides     = 2          # conv strides
 size_init   = 4          # in the paper 4
