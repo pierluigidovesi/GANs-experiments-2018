@@ -33,7 +33,7 @@ num_epochs = 0          # tot epochs
 batch_size = 64          # micro batch size
 disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim (paper 128, but suggested 64)
-is_class_r = 100
+is_n_batch = 100
 
 # Losses parameters
 wasserst_w = 1           # wasserstain weight (always 1)
@@ -369,7 +369,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	# Inception Score SAMPLES
 	print('----------------- G: Inception Score SAMPLES    -----------------')
-	is_input = tf.placeholder(tf.float32, shape=[is_class_r * num_labels, latent_dim + num_labels])
+	is_input = tf.placeholder(tf.float32, shape=[batch_size * num_labels, latent_dim + num_labels])
 	is_samples = generator(num_labels, is_input, reuse=True)
 
 	# TRAINING SESSION
@@ -670,17 +670,18 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	# END FOR EPOCHS
 
-	# is input stuff
-	print('Inception Score - noise creation...')
-	is_noise = np.random.randn(num_labels * is_class_r, latent_dim)
-	is_labels = np.tile(np.eye(num_labels), is_class_r).transpose()
-	is_labels_with_noise = np.concatenate((is_labels, is_noise), axis=1)
+	print('Inception Score - image generation...')
+	is_img = []
+	for i in range(is_n_batch):
 
-	# recall generator
-	print('Inception Score - 10k image generation...')
-	is_img = session.run([is_samples],
-	                     feed_dict={is_input: is_labels_with_noise})
+		# is input stuff
+		is_noise = np.random.randn(num_labels * batch_size, latent_dim)
+		is_labels = np.tile(np.eye(num_labels), batch_size).transpose()
+		is_labels_with_noise = np.concatenate((is_labels, is_noise), axis=1)
 
+		# recall generator
+		is_img.append(session.run([is_samples],
+		                          feed_dict={is_input: is_labels_with_noise}))
 # END SESSION
 
 # Inception Score
