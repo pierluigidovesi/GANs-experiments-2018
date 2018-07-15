@@ -59,7 +59,7 @@ fixed_noise = True       # always use same noise for image samples
 sample_repetitions = 5   # to get more rows of images of same epoch in same plot (always put highest value)
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_in_out    = True   # print disc images and values
+check_in_out    = False   # print disc images and values
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -137,6 +137,7 @@ def print_log():
 	print('used GPUs:   ', N_GPU)
 	print('random seed: ', seed)
 	print('sample rep:  ', sample_repetitions)
+	print()
 
 # print settings
 print_log()
@@ -631,12 +632,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		# plot images
 		if check_in_out:
 			# generate_images(img_samples, 100+epoch, repetitions=6)
-			print('max value real img (last batch): ', img_samples.max())
-			print('min value real img (last batch): ', img_samples.min())
+			print(' max value real img (last batch): ', img_samples.max())
+			print(' min value real img (last batch): ', img_samples.min())
 			# print('labels feeded for epoch: ', epoch)
 			# print(img_labels)
-			print('max value generated img (all):   ', np.max(generated_img))
-			print('min value generated img (all):   ', np.min(generated_img))
+			print(' max value generated img (all):   ', np.max(generated_img))
+			print(' min value generated img (all):   ', np.min(generated_img))
 
 		if epoch % 10 == 0 or epoch == (num_epochs - 1) or always_get_loss:
 			# SAVE & PRINT LOSSES
