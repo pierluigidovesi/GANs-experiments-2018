@@ -17,15 +17,15 @@ import time
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import functional_ops
 
-tfgan = tf.contrib.gan
 
-session = tf.InteractiveSession()
-
-BATCH_SIZE = 64
-
-# Run images through Inception.
-inception_images = tf.placeholder(tf.float32, [BATCH_SIZE, 3, None, None])
-
+def main(images):
+	tfgan = tf.contrib.gan
+	session = tf.InteractiveSession()
+	BATCH_SIZE = 64
+	# Run images through Inception.
+	inception_images = tf.placeholder(tf.float32, [BATCH_SIZE, 3, None, None])
+	logits = inception_logits()
+	return get_inception_score(images, splits=10)
 
 def inception_logits(images=inception_images, num_splits=1):
 	images = tf.transpose(images, [0, 2, 3, 1])
@@ -41,10 +41,10 @@ def inception_logits(images=inception_images, num_splits=1):
 		swap_memory=True,
 		name='RunClassifier')
 	logits = array_ops.concat(array_ops.unstack(logits), 0)
+
 	return logits
 
 
-logits = inception_logits()
 
 
 def get_inception_probs(inps):
