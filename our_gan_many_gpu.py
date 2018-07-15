@@ -1,4 +1,4 @@
-from inception_score import *
+import inception_score
 import os, sys
 sys.path.append(os.getcwd())
 import numpy as np
