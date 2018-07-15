@@ -19,6 +19,7 @@ from tensorflow.python.ops import functional_ops
 
 
 def main(images):
+	global tfgan
 	tfgan = tf.contrib.gan
 	session = tf.InteractiveSession()
 	BATCH_SIZE = 64
