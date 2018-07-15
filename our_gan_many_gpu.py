@@ -29,11 +29,11 @@ cifar10_data = True      # 32 32 (3)
 
 
 # gan architecture
-num_epochs = 0          # tot epochs
+num_epochs = 0           # tot epochs
 batch_size = 64          # micro batch size
 disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim (paper 128, but suggested 64)
-is_n_batch = 100
+is_n_batch = 10          # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
 wasserst_w = 1           # wasserstain weight (always 1)
@@ -672,7 +672,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	print('Inception Score - image generation...')
 	is_img = []
-	for i in range(is_n_batch):
+	for i in tqdm(range(is_n_batch)):
 
 		# is input stuff
 		is_noise = np.random.randn(num_labels * batch_size, latent_dim)
