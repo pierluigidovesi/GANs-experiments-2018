@@ -24,9 +24,11 @@ def main(images):
 	global BATCH_SIZE
 	BATCH_SIZE = 64
 
+	global session
 	session = tf.InteractiveSession()
 
 	# Run images through Inception.
+	global inception_images
 	inception_images = tf.placeholder(tf.float32, [BATCH_SIZE, 3, None, None])
 
 	global logits
