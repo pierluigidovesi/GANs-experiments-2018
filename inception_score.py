@@ -24,10 +24,10 @@ def main(images):
 	BATCH_SIZE = 64
 	# Run images through Inception.
 	inception_images = tf.placeholder(tf.float32, [BATCH_SIZE, 3, None, None])
-	logits = inception_logits()
+	logits = inception_logits(inception_images)
 	return get_inception_score(images, splits=10)
 
-def inception_logits(images=inception_images, num_splits=1):
+def inception_logits(images, num_splits=1):
 	images = tf.transpose(images, [0, 2, 3, 1])
 	size = 299
 	images = tf.image.resize_bilinear(images, [size, size])
