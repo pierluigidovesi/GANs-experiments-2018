@@ -684,7 +684,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 # END SESSION
 
 # Inception Score
-is_image = is_img.reshape(resolution_image, resolution_image, channels)
+is_image = np.array(is_img).reshape(-1, resolution_image, resolution_image, channels)
 print('Inception score images shape: ', is_image.shape)
 is_mean, is_std = inception_score.main(is_image.transpose([0, 3, 1, 2]))
 print('Inception score:')
