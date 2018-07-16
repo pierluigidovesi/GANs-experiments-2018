@@ -505,7 +505,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	# TF Saver
 	saver = tf.train.Saver()
-
+	print('Model saved')
 	# continue training
 	# save_path = saver.save(session, "/tmp/model.ckpt")
 	# ckpt = tf.train.latest_checkpoint('./model/' + version)
@@ -695,15 +695,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		print(' gen cost   = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
 		print(' disc cost  = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
 
+		#save_path = saver.save(session, "/tmp/model.ckpt")
+
+		if not os.path.exists('./model/' + version):
+			os.makedirs('./model/' + version)
+		saver.save(session, './model/' + version + '/' + str(epoch))
+		
 		if total_time >= timer:
 			print(' - - - - - TIME OUT! - - - - - ')
 			break
 
-	#save_path = saver.save(session, "/tmp/model.ckpt")
-
-	if not os.path.exists('./model/' + version):
-		os.makedirs('./model/' + version)
-	saver.save(session, './model/' + version + '/' + str(epoch))
 
 	# END FOR EPOCHS
 
