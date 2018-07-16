@@ -507,8 +507,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	saver = tf.train.Saver()
 	# continue training
 	# save_path = saver.save(session, "/tmp/model.ckpt")
-	# ckpt = tf.train.latest_checkpoint('./model/' + version)
-	# saver.restore(session, save_path)
+	# ckpt = tf.train.latest_checkpoint('./model')
+
+	try:
+		print('saver: variables restored!')
+		saver.restore(session, './model')
+	except:
+		print('saver: nothing to restore.')
 
 	# restore batch_size
 	batch_size = int(batch_size * len(DEVICES))
@@ -696,12 +701,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		#save_path = saver.save(session, "/tmp/model.ckpt")
 
-		if not os.path.exists('./model/' + version):
-			os.makedirs('./model/' + version)
+		if not os.path.exists('./model'):
+			os.makedirs('./model')
 
-		time2save = time.time()
-		saver.save(session, './model/' + version + '/' + str(epoch))
-		print(time.time()-time2save)
+		saver.save(session, './model/saving_' + str(epoch))  # 2 seconds needed
 
 		saver.save(session, './model.ckpt')
 
