@@ -60,6 +60,7 @@ sample_repetitions = 5   # to get more rows of images of same epoch in same plot
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
 check_in_out    = False   # print disc images and values
+version = "gan"
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -380,11 +381,17 @@ y_train = y_hot
 
 
 # ========================== TENSORFLOW SESSION =================================== #
-# TF Saver
-saver = tf.train.Saver()
 
 # TF Session
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
+
+	# TF Saver
+	saver = tf.train.Saver()
+
+	# continue training
+	# save_path = saver.save(session, "/tmp/model.ckpt")
+	# ckpt = tf.train.latest_checkpoint('./model/' + version)
+	# saver.restore(session, save_path)
 
 	# TEST SAMPLE GENERATION SESSION
 	print('----------------- G: TEST SAMPLES    -----------------')
@@ -507,7 +514,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# restore batch_size
 	batch_size = int(batch_size * len(DEVICES))
 
-	# run session
+	#  - - - - RUN - - - - - -
 	session.run(tf.global_variables_initializer())
 
 	# set dataset index
@@ -692,7 +699,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			print(' - - - - - TIME OUT! - - - - - ')
 			break
 
-	save_path = saver.save(session, "/tmp/model.ckpt")
+	#save_path = saver.save(session, "/tmp/model.ckpt")
+
+	if not os.path.exists('./model/' + version):
+		os.makedirs('./model/' + version)
+	saver.save(session, './model/' + version + '/' + str(epoch))
+
 	# END FOR EPOCHS
 
 	print('Inception Score - image generation...')
