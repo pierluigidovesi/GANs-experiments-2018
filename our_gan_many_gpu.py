@@ -510,7 +510,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# ckpt = tf.train.latest_checkpoint('./model')
 
 	try:
-		saver.restore(session, './')
+		saver.restore(session, '/content/our_gan')
 		print('saver: variables restored!')
 	except:
 		print('saver: nothing to restore.')
@@ -704,8 +704,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 		if not os.path.exists('./model'):
 			os.makedirs('./model')
 
-		saver.save(session, './model/saving_' + str(epoch))  # 2 seconds needed
-
+		# saver.save(session, './model/saving_' + str(epoch))  # 2 seconds needed
+		saver.save(session, './model/model.ckpt')
 		saver.save(session, './model.ckpt')
 
 		if total_time >= timer:
