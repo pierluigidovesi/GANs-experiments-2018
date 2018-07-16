@@ -31,7 +31,7 @@ cifar10_data = True      # 32 32 (3)
 # GAN architecture
 num_epochs = 50          # tot epochs
 batch_size = 64          # micro batch size
-disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 50          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim (paper 128, but suggested 64)
 is_n_batch = 20          # number of batches for EACH class for Inception Score evaluation
 
@@ -505,7 +505,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	# TF Saver
 	saver = tf.train.Saver()
-	print('Model saved')
 	# continue training
 	# save_path = saver.save(session, "/tmp/model.ckpt")
 	# ckpt = tf.train.latest_checkpoint('./model/' + version)
@@ -699,8 +698,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		if not os.path.exists('./model/' + version):
 			os.makedirs('./model/' + version)
+
+		time2save = time.time()
 		saver.save(session, './model/' + version + '/' + str(epoch))
-		
+		print(time.time()-time2save)
+
+		saver.save(session, './model.ckpt')
+
 		if total_time >= timer:
 			print(' - - - - - TIME OUT! - - - - - ')
 			break
