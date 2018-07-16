@@ -385,14 +385,6 @@ y_train = y_hot
 # TF Session
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
-	# TF Saver
-	saver = tf.train.Saver()
-
-	# continue training
-	# save_path = saver.save(session, "/tmp/model.ckpt")
-	# ckpt = tf.train.latest_checkpoint('./model/' + version)
-	# saver.restore(session, save_path)
-
 	# TEST SAMPLE GENERATION SESSION
 	print('----------------- G: TEST SAMPLES    -----------------')
 	test_input = tf.placeholder(tf.float32, shape=[sample_repetitions * num_labels, latent_dim + num_labels])
@@ -510,6 +502,14 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# ------------------------------------ Train ---------------------------------------------- #
 	print(' - - - - - - - - - - TRAIN - - - - - - - - - - ')
 	# with tf.Session() as session:
+
+	# TF Saver
+	saver = tf.train.Saver()
+
+	# continue training
+	# save_path = saver.save(session, "/tmp/model.ckpt")
+	# ckpt = tf.train.latest_checkpoint('./model/' + version)
+	# saver.restore(session, save_path)
 
 	# restore batch_size
 	batch_size = int(batch_size * len(DEVICES))
