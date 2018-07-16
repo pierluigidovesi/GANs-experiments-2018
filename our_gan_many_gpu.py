@@ -168,7 +168,7 @@ def generate_images(images, epoch, repetitions = 1):
 
 			plt.subplot(repetitions, num_labels, 1 + i + j*num_labels)
 
-			if j == 0:
+			if j == 0 and label_incr > 0:
 				plt.title(names[i], fontsize=100)
 
 			plt.imshow(new_image)
@@ -510,7 +510,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# ckpt = tf.train.latest_checkpoint('./model')
 
 	try:
-		saver.restore(session, './model')
+		saver.restore(session, './')
 		print('saver: variables restored!')
 	except:
 		print('saver: nothing to restore.')
