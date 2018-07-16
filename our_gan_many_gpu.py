@@ -335,7 +335,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 	return scores_out, labels_out
 
 
-def get_trainable_variables(): # used in optimizer/minimize (training)
+def get_trainable_variables():  # used in optimizer/minimize (training)
 	"""
     :return: trainable variables (d_vars, g_vars)
     """
@@ -378,9 +378,12 @@ b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
 y_train = y_hot
 
-# ------------------------------------------------------------------------------ #
 
-# TENSORFLOW SESSION
+# ========================== TENSORFLOW SESSION =================================== #
+# TF Saver
+saver = tf.train.Saver()
+
+# TF Session
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 	# TEST SAMPLE GENERATION SESSION
@@ -689,6 +692,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			print(' - - - - - TIME OUT! - - - - - ')
 			break
 
+	save_path = saver.save(session, "/tmp/model.ckpt")
 	# END FOR EPOCHS
 
 	print('Inception Score - image generation...')
