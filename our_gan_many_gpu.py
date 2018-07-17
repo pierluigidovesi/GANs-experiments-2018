@@ -135,10 +135,11 @@ def print_log():
 	print('leakage:     ', leakage)
 
 	print('5. MISCELLANEOUS')
-	print('used GPUs:   ', N_GPU)
+	print('used GPUs:   ', DEVICES)
 	print('random seed: ', seed)
 	print('sample rep:  ', sample_repetitions)
 	print()
+
 
 # print settings
 print_log()
@@ -175,7 +176,7 @@ def generate_images(images, epoch, repetitions = 1):
 			plt.axis("off")
 
 	plt.axis("off")
-	plt.savefig("epoch_" + str(epoch) + ".png")
+	plt.savefig("sample_epoch_" + str(epoch) + ".png")
 	if always_show_fig:
 		plt.show()
 	plt.close('all')
