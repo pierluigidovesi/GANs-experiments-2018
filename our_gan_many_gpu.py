@@ -222,7 +222,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
 		print(output)
 
 		# ----- LoopLayers, deConv, Batch, Leaky ----- #
-
+		karras_gen_out = []
 		for i in range(n_conv_layer):
 
 			if resolution_image == 28 and size_init * (1 + i) == 8:
@@ -248,6 +248,8 @@ def generator(n_samples, noise_with_labels, reuse=None):
 			output = tf.maximum(leakage * output, output) # relu
 
 			n_filters = int(n_filters / 2)
+
+			karras_gen_out.append(output)
 
 		# ----- LastLayer, deConv, Batch, Leaky ----- #
 
@@ -300,7 +302,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 		print(output)
 
 		# ----- LoopLayers, Conv, Leaky ----- #
-
+		karras_disc_in = []
 		for i in range(n_conv_layer):
 			print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
 
@@ -315,6 +317,8 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 
 			output = tf.maximum(leakage * output, output)
 			n_filters = int(n_filters * 2)
+
+			karras_disc_in.append(output)
 
 		output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * const_filt)])
 		print(' D: reshape linear layer')
@@ -454,6 +458,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# total gen loss
 			generator_loss = gen_wasserstein_loss + gen_labels_loss
 
+
 			# ----- Disc Loss ----- #
 
 			# wasserstein
@@ -482,6 +487,17 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			generator_loss_list.append(generator_loss)
 			discriminator_loss_list.append(discriminator_loss)
+
+			# ---------- ACCURACY --------
+
+			# disc accuracy on REAL img
+			real_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_real_labels, 1))
+			real_accuracy = tf.reduce_mean(real_correct_pred, tf.float32)
+
+			# disc accuracy of FAKE img ---> i.e. gen accuracy
+			fake_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_fake_labels, 1))
+			fake_accuracy = tf.reduce_mean(fake_correct_pred, tf.float32)
+
 	# end gpu iter
 
 	# Trainable variables
@@ -490,6 +506,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# get total average cost of total BATCH
 	generator_loss_list = tf.add_n(generator_loss_list) / len(DEVICES)
 	discriminator_loss_list = tf.add_n(discriminator_loss_list) / len(DEVICES)
+
+	# get total average accuracy
+	real_accuracy = tf.add_n(real_accuracy) / len(DEVICES)
+	fake_accuracy = tf.add_n(fake_accuracy) / len(DEVICES)
+
 	# ---------------------------------- Optimizers ----------------------------------- #
 	generator_optimizer = tf.train.AdamOptimizer(learning_rate=learn_rate,
 	                                             beta1=beta1_opti,
@@ -510,7 +531,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	# ckpt = tf.train.latest_checkpoint('./model')
 
 	try:
-		saver.restore(session, '/content/our_gan')
+		saver.restore(session)
 		print('saver: variables restored!')
 	except:
 		print('saver: nothing to restore.')
@@ -588,21 +609,29 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 
 				# train disc
-				disc_cost, dw_cost, d_gradpen, d_lab_cost, _ = session.run([discriminator_loss,
-				                                                            disc_wasserstein_loss,
-				                                                            gradient_penalty,
-				                                                            disc_labels_loss,
-				                                                            discriminator_optimizer],
-				                                                           feed_dict={all_input_generator: discriminator_labels_with_noise,
-				                                                                      all_real_data:       img_samples,
-				                                                                      all_real_labels:     img_labels,
-				                                                                      label_weights:       labels_incremental_weight})
+				# disc_cost, dw_cost, d_gradpen, d_lab_cost, disc_accuracy, gen_accuracy, _
+				disc_run_out = []
+				disc_run_out = session.run([discriminator_loss,
+				                            disc_wasserstein_loss,
+				                            gradient_penalty,
+				                            disc_labels_loss,
+				                            real_accuracy,
+				                            fake_accuracy,
+				                            discriminator_optimizer],
+				                           feed_dict={all_input_generator: discriminator_labels_with_noise,
+				                                      all_real_data:       img_samples,
+				                                      all_real_labels:     img_labels,
+				                                      label_weights:       labels_incremental_weight})
 
 				# append losses means (each loss has batch_size element)
-				d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mean(d_lab_cost)])
+				# d_cost_vector.append([np.mean(disc_cost), np.mean(dw_cost), np.mean(d_gradpen), np.mean(d_lab_cost)])
+
+				disc_run_out = disc_run_out[:-1]
+				d_cost_vector.append([np.mean(elem) for elem in disc_run_out])
 
 			# END FOR MICRO BATCHES
 			# append disc loss over disc_iters
+
 			discriminator_history.append(np.mean(d_cost_vector, 0))
 
 			# GENERATOR TRAINING
@@ -680,6 +709,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			plt.legend()
 			plt.savefig("G_losses.png")
 
+			# discriminator losses
+			plt.figure()
+			disc_acc = plt.plot(np.array([item[4] for item in discriminator_history]), label='DISC')
+			gen_acc  = plt.plot(np.array([item[5] for item in discriminator_history]), label='GEN')
+			plt.legend()
+			plt.savefig("accuracy.png")
+
 			if always_show_fig:
 				plt.show()  # it works only in interactive mode
 
@@ -696,8 +732,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 		total_time = time.time() - init_time
 		print(' cycle time:  ', time.time() - start_time, " - total time: ", total_time)
-		print(' gen cost   = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
+		print(' gen  cost  = ', np.mean([item[0] for item in generator_history[-num_macro_batches:]]))
 		print(' disc cost  = ', np.mean([item[0] for item in discriminator_history[-num_macro_batches:]]))
+
+		print(' gen  accu  = ', np.mean([item[5] for item in discriminator_history[-num_macro_batches:]]))
+		print(' disc accu  = ', np.mean([item[4] for item in discriminator_history[-num_macro_batches:]]))
 
 		#save_path = saver.save(session, "/tmp/model.ckpt")
 
