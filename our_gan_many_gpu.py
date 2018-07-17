@@ -415,6 +415,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 	generator_loss_list     = []
 	discriminator_loss_list = []
 
+	gradient_penalty_list      = []
+	disc_wasserstein_loss_list = []
+	disc_labels_loss_list      = []
+
+	gen_wasserstein_loss_list  = []
+	gen_labels_loss_list       = []
+
+	real_accuracy_list      = []
+	fake_accuracy_list      = []
+
 	# split batch_size
 	batch_size = int(batch_size // len(DEVICES))
 
@@ -485,40 +495,60 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			# sum losses
 			discriminator_loss = disc_wasserstein_loss + disc_labels_loss + gradient_penalty
 
+			# append all losses
 			generator_loss_list.append(generator_loss)
 			discriminator_loss_list.append(discriminator_loss)
+			# single losses:
+			#  - disc
+			gradient_penalty_list.append(gradient_penalty)
+			disc_wasserstein_loss_list.append(disc_wasserstein_loss)
+			disc_labels_loss_list.append(disc_labels_loss)
+			# - gen
+			gen_wasserstein_loss_list.append(gen_wasserstein_loss)
+			gen_labels_loss_list.append(gen_labels_loss)
 
 			# ---------- ACCURACY --------
 
 			# disc accuracy on REAL img
 			real_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_real_labels, 1))
 			real_accuracy = tf.reduce_mean(tf.cast(real_correct_pred, tf.float32))
+			real_accuracy_list.append(real_accuracy)
 
 			# disc accuracy of FAKE img ---> i.e. gen accuracy
 			fake_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_fake_labels, 1))
 			fake_accuracy = tf.reduce_mean(tf.cast(fake_correct_pred, tf.float32))
+			fake_accuracy_list.append(fake_accuracy)
 
 	# end gpu iter
 
+	# get total average cost of total BATCH (over the gpus)
+	generator_loss_mean        = tf.add_n(generator_loss_list) / len(DEVICES)
+	discriminator_loss_mean    = tf.add_n(discriminator_loss_list) / len(DEVICES)
+
+	# single average losses:
+	#  - disc
+	gradient_penalty_mean      = tf.add_n(gradient_penalty_list) / len(DEVICES)
+	disc_wasserstein_loss_mean = tf.add_n(disc_wasserstein_loss_list) / len(DEVICES)
+	disc_labels_loss_mean      = tf.add_n(disc_labels_loss_list) / len(DEVICES)
+	# - gen
+	gen_wasserstein_loss_mean  = tf.add_n(gen_wasserstein_loss_list) / len(DEVICES)
+	gen_labels_loss_mean       = tf.add_n(gen_labels_loss_list) / len(DEVICES)
+
+	# get total average accuracy
+	real_accuracy_mean         = tf.add_n(real_accuracy_list) / len(DEVICES)
+	fake_accuracy_mean         = tf.add_n(fake_accuracy_list) / len(DEVICES)
+
+	# ---------------------------------- Optimizers ----------------------------------- #
 	# Trainable variables
 	d_vars, g_vars = get_trainable_variables()
 
-	# get total average cost of total BATCH
-	generator_loss_list = tf.add_n(generator_loss_list) / len(DEVICES)
-	discriminator_loss_list = tf.add_n(discriminator_loss_list) / len(DEVICES)
-
-	# get total average accuracy
-	real_accuracy = tf.add_n(real_accuracy) / len(DEVICES)
-	fake_accuracy = tf.add_n(fake_accuracy) / len(DEVICES)
-
-	# ---------------------------------- Optimizers ----------------------------------- #
 	generator_optimizer = tf.train.AdamOptimizer(learning_rate=learn_rate,
 	                                             beta1=beta1_opti,
-	                                             beta2=beta2_opti).minimize(generator_loss_list, var_list=g_vars)
+	                                             beta2=beta2_opti).minimize(generator_loss_mean, var_list=g_vars)
 
 	discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=learn_rate,
 	                                                 beta1=beta1_opti,
-	                                                 beta2=beta2_opti).minimize(discriminator_loss_list, var_list=d_vars)
+	                                                 beta2=beta2_opti).minimize(discriminator_loss_mean, var_list=d_vars)
 
 	# ------------------------------------ Train ---------------------------------------------- #
 	print(' - - - - - - - - - - TRAIN - - - - - - - - - - ')
@@ -610,13 +640,13 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 				# train disc
 				# disc_cost, dw_cost, d_gradpen, d_lab_cost, disc_accuracy, gen_accuracy, _
-				disc_run_out = []
-				disc_run_out = session.run([discriminator_loss,
-				                            disc_wasserstein_loss,
-				                            gradient_penalty,
-				                            disc_labels_loss,
-				                            real_accuracy,
-				                            fake_accuracy,
+				# disc_run_out = []
+				disc_run_out = session.run([discriminator_loss_mean,
+				                            disc_wasserstein_loss_mean,
+				                            gradient_penalty_mean,
+				                            disc_labels_loss_mean,
+				                            real_accuracy_mean,
+				                            fake_accuracy_mean,
 				                            discriminator_optimizer],
 				                           feed_dict={all_input_generator: discriminator_labels_with_noise,
 				                                      all_real_data:       img_samples,
@@ -647,16 +677,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 			                                              generator_noise), axis=1)
 
 			# train gen
-			gen_cost, gw_cost, g_lab_cost, _ = session.run([generator_loss,
-			                                                gen_wasserstein_loss,
-			                                                gen_labels_loss,
-			                                                generator_optimizer],
-			                                               feed_dict={all_input_generator: generator_labels_with_noise,
-			                                                          all_real_labels:     fake_labels_onehot,
-			                                                          label_weights:       labels_incremental_weight})
+			# gen_cost, gw_cost, g_lab_cost, _
+			gen_run_out = session.run([generator_loss_mean,
+			                           gen_wasserstein_loss_mean,
+			                           gen_labels_loss_mean,
+			                           generator_optimizer],
+			                          feed_dict={all_input_generator: generator_labels_with_noise,
+			                                     all_real_labels:     fake_labels_onehot,
+			                                     label_weights:       labels_incremental_weight})
 
-			# append directly in gen loss history (with mean beacuse of batch_size)
-			generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
+			gen_run_out = gen_run_out[:-1]
+			# append directly in gen loss history (with mean because of batch_size)
+
+			# generator_history.append([np.mean(gen_cost), np.mean(gw_cost), np.mean(g_lab_cost)])
+			generator_history.append([np.mean(elem) for elem in gen_run_out])
 		# END FOR MACRO BATCHES
 
 		# generate test latent space (with sample_repetitions to create more rows of samples)
