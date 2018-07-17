@@ -492,11 +492,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
 			# disc accuracy on REAL img
 			real_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_real_labels, 1))
-			real_accuracy = tf.reduce_mean(real_correct_pred, tf.float32)
+			real_accuracy = tf.reduce_mean(tf.cast(real_correct_pred, tf.float32))
 
 			# disc accuracy of FAKE img ---> i.e. gen accuracy
 			fake_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_fake_labels, 1))
-			fake_accuracy = tf.reduce_mean(fake_correct_pred, tf.float32)
+			fake_accuracy = tf.reduce_mean(tf.cast(fake_correct_pred, tf.float32))
 
 	# end gpu iter
 
