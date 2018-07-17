@@ -29,9 +29,9 @@ fashion_data = False     # 28 28 (1)
 cifar10_data = True      # 32 32 (3)
 
 # GAN architecture
-num_epochs = 1          # tot epochs
+num_epochs = 50          # tot epochs
 batch_size = 64          # micro batch size
-disc_iters = 50          # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128         # input dim (paper 128, but suggested 64)
 is_n_batch = 20          # number of batches for EACH class for Inception Score evaluation
 
