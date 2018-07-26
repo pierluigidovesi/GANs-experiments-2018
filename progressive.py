@@ -254,23 +254,60 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
             karras_gen_out.append(output)
 
-        # ----- LastLayer, deConv, Batch, Leaky ----- #
+            """
+            # Linear structure: simple but inefficient.
+            if structure == 'linear':
+                x = block(combo_in, 2)
+                images_out = torgb(x, 2)
+                for res in range(3, resolution_log2 + 1):
+                    lod = resolution_log2 - res
+                    x = block(x, res)
+                    img = torgb(x, res)
+                    images_out = upscale2d(images_out)
+                    with tf.variable_scope('Grow_lod%d' % lod):
+                        images_out = lerp_clip(img, images_out, lod_in - lod)
+            """
 
-        print(' G: last conv2d_transpose layer - n filters layer: ', channels)
-        output = layers.conv2d_transpose(output,
-                                         filters=1 * channels,
-                                         kernel_size=kernel_size,
-                                         strides=1,
-                                         padding='same')
-        print(output)
+            lod = n_conv_layer - i
+            img_new = toRGB(output, i)
+            img_out = upscale2d(img_out)
+            with tf.variable_scope('Grow_lod%d' % lod):
+                img_out = lerp_clip(img_new, imag_out, lod_in - lod)
 
-        output = tf.nn.tanh(output)
-        output = tf.reshape(output, [-1, OUTPUT_DIM])
+    return img_out
 
-        print(' G: output reshape')
-        print(output)
 
-    return output
+
+def toRGB(output, i):
+
+    """
+        def torgb(x, res):  # res = 2..resolution_log2
+    lod = resolution_log2 - res
+    with tf.variable_scope('ToRGB_lod%d' % lod):
+        return apply_bias(conv2d(x, fmaps=num_channels, kernel=1, gain=1, use_wscale=use_wscale))
+    """
+
+    # this is "toRGB"
+    n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
+    lod = n_conv_layer - i
+
+    # ----- LastLayer, deConv, Batch, Leaky ----- #
+    print(' G: last conv2d_transpose layer - n filters layer: ', channels)
+    output = layers.conv2d_transpose(output,
+                                     filters=1 * channels,
+                                     kernel_size=1,  # before was kernel_size
+                                     strides=1,
+                                     padding='same')
+    print(output)
+
+    output = tf.nn.tanh(output)
+    output = tf.reshape(output, [-1, OUTPUT_DIM])
+
+    print(' G: output reshape')
+    print(output)
+
+    with tf.variable_scope('ToRGB_lod%d' % lod):
+        return output
 
 
 def discriminator(images, reuse=None, n_conv_layer=3):
