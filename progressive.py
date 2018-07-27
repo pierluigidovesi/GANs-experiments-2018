@@ -8,6 +8,8 @@ from tensorflow import layers
 import time
 import matplotlib.pyplot as plt
 
+tf_config['graph_options.place_pruned_graph']   = True
+
 # import tqdm only if previously installed
 try:
     from tqdm import tqdm
@@ -31,38 +33,38 @@ fashion_data = False  # 28 28 (1)
 cifar10_data = True  # 32 32 (3)
 
 # GAN architecture
-num_epochs = 50  # tot epochs
-batch_size = 64  # micro batch size
-disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 128  # input dim (paper 128, but suggested 64)
-is_n_batch = 20  # number of batches for EACH class for Inception Score evaluation
+num_epochs = 50    # tot epochs
+batch_size = 64    # micro batch size
+disc_iters = 10    # Number of discriminator updates each generator update. The paper uses 5.
+latent_dim = 128   # input dim (paper 128, but suggested 64)
+is_n_batch = 20    # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
-wasserst_w = 1  # wasserstain weight (always 1)
-grad_pen_w = 40  # in the paper 10
+wasserst_w = 1     # wasserstain weight (always 1)
+grad_pen_w = 40    # in the paper 10
 learn_rate = 2e-4  # in the paper 1/2e-4
-beta1_opti = 0.5  # in the paper 0.5
-beta2_opti = 0.9  # in the paper 0.9
-label_incr = 1  # increment of labels weight (saturate in 1)
-label_satu = 1  # max label weight
+beta1_opti = 0.5   # in the paper 0.5
+beta2_opti = 0.9   # in the paper 0.9
+label_incr = 1     # increment of labels weight (saturate in 1)
+label_satu = 1     # max label weight
 
 # CONV Parameters
-const_filt = 70  # number of filters (paper 64) [96 maybe better]
+const_filt  = 70      # number of filters (paper 64) [96 maybe better]
 kernel_size = (5, 5)  # conv kenel size
-strides = 2  # conv strides
-size_init = 4  # in the paper 4
-leakage = 0.01  # leaky relu constant
+strides     = 2       # conv strides
+size_init   = 4       # in the paper 4
+leakage     = 0.01    # leaky relu constant
 
 # number of GPUs
 N_GPU = 1  # need to change if many gpu!
 
 # verbose
-fixed_noise = True  # always use same noise for image samples
-sample_repetitions = 5  # to get more rows of images of same epoch in same plot (always put highest value)
-always_get_loss = True  # get loss each epoch
-always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_in_out = False  # print disc images and values
-version = "gan"
+fixed_noise        = True   # always use same noise for image samples
+sample_repetitions = 5      # to get more rows of images of same epoch in same plot (always put highest value)
+always_get_loss    = True   # get loss each epoch
+always_show_fig    = False  # real time show test samples each epoch (do not work in backend)
+check_in_out       = False  # print disc images and values
+version            = "gan"
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -183,6 +185,43 @@ def generate_images(images, epoch, repetitions=1):
         plt.show()
     plt.close('all')
 
+# ----------------------------------------------------------------------------------
+# PROGRESSIVE FUNCTIONS:
+
+
+# ----- used in generator ------
+# toRGB
+def toRGB(output):
+    print(' G: toRGB conv')
+    output = layers.conv2d_transpose(output,
+                                     filters=1 * channels,
+                                     kernel_size=1,  # before was kernel_size
+                                     strides=1,
+                                     padding='same')
+    print(output)
+    output = tf.nn.tanh(output)
+    output = tf.reshape(output, [-1, OUTPUT_DIM])
+    print(' G: toRGB output reshape')
+    print(output)
+
+    return output
+
+
+# upscale2d
+def upscale2d(x, factor=2):
+    assert isinstance(factor, int) and factor >= 1
+    if factor == 1: return x
+    with tf.variable_scope('Upscale2D'):
+        s = x.shape
+        x = tf.reshape(x, [-1, s[1], s[2], 1, s[3], 1])
+        x = tf.tile(x, [1, 1, 1, factor, 1, factor])
+        x = tf.reshape(x, [-1, s[1], s[2] * factor, s[3] * factor])
+        return x
+
+# clipped average
+def lerp_clip(a, b, t): return a + (b - a) * tf.clip_by_value(t, 0.0, 1.0)
+
+# -----------------------------------------------------------------------------------------
 
 def generator(n_samples, noise_with_labels, reuse=None):
     """
@@ -190,6 +229,10 @@ def generator(n_samples, noise_with_labels, reuse=None):
     :param noise_with_labels: latent noise + labels
     :return:                  generated images
     """
+
+    lod_in = tf.cast(tf.get_variable('lod', initializer=np.float32(0.0), trainable=False), 'float32')
+
+
     # (if image size is a power of 2 --> you can: n_filter = image_res/n_filter)
     # get number of layers and filters
 
@@ -225,11 +268,10 @@ def generator(n_samples, noise_with_labels, reuse=None):
         print(output)
 
         # ----- LoopLayers, deConv, Batch, Leaky ----- #
-        karras_gen_out = []
+        img_out_list = []
         for i in range(n_conv_layer):
 
             if resolution_image == 28 and size_init * (1 + i) == 8:
-
                 if channel_first_gen:
                     output = output[:, :, :7, :7]
                 else:
@@ -252,62 +294,39 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
             n_filters = int(n_filters / 2)
 
-            karras_gen_out.append(output)
+            # -----------------------------------------------------------------------------
+            # KARRAS
 
-            """
-            # Linear structure: simple but inefficient.
-            if structure == 'linear':
-                x = block(combo_in, 2)
-                images_out = torgb(x, 2)
-                for res in range(3, resolution_log2 + 1):
-                    lod = resolution_log2 - res
-                    x = block(x, res)
-                    img = torgb(x, res)
-                    images_out = upscale2d(images_out)
-                    with tf.variable_scope('Grow_lod%d' % lod):
-                        images_out = lerp_clip(img, images_out, lod_in - lod)
-            """
+            img_new = toRGB(output)
 
-            lod = n_conv_layer - i
-            img_new = toRGB(output, i)
-            img_out = upscale2d(img_out)
-            with tf.variable_scope('Grow_lod%d' % lod):
-                img_out = lerp_clip(img_new, imag_out, lod_in - lod)
+            if i == 0:
+                img_out = img_new
+            else:
+                img_out = upscale2d(output)
 
-    return img_out
+            with tf.variable_scope('Layer%d' % i):
+                img_out = lerp_clip(img_new, img_out, lod_in - i)
+                # img_out_list.append(img_out)
 
+        return img_out
 
+def fromRGB(output, n_filters):
+    # if channel first you need to change channel key
 
-def toRGB(output, i):
+    output = layers.conv2d(output,
+                           filters=n_filters * const_filt,
+                           kernel_size=kernel_size,
+                           strides=strides,
+                           padding='same')
+    return output
 
-    """
-        def torgb(x, res):  # res = 2..resolution_log2
-    lod = resolution_log2 - res
-    with tf.variable_scope('ToRGB_lod%d' % lod):
-        return apply_bias(conv2d(x, fmaps=num_channels, kernel=1, gain=1, use_wscale=use_wscale))
-    """
-
-    # this is "toRGB"
-    n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
-    lod = n_conv_layer - i
-
-    # ----- LastLayer, deConv, Batch, Leaky ----- #
-    print(' G: last conv2d_transpose layer - n filters layer: ', channels)
-    output = layers.conv2d_transpose(output,
-                                     filters=1 * channels,
-                                     kernel_size=1,  # before was kernel_size
-                                     strides=1,
-                                     padding='same')
-    print(output)
-
-    output = tf.nn.tanh(output)
-    output = tf.reshape(output, [-1, OUTPUT_DIM])
-
-    print(' G: output reshape')
-    print(output)
-
-    with tf.variable_scope('ToRGB_lod%d' % lod):
-        return output
+def downscale2d(x, factor=2):
+    assert isinstance(factor, int) and factor >= 1
+    if factor == 1: return x
+    with tf.variable_scope('Downscale2D'):
+        ksize = [1, 1, factor, factor]
+        return tf.nn.avg_pool(x, ksize=ksize, strides=ksize, padding='VALID',
+                              data_format='NCHW')  # NOTE: requires tf_config['graph_options.place_pruned_graph'] = True
 
 
 def discriminator(images, reuse=None, n_conv_layer=3):
@@ -315,6 +334,8 @@ def discriminator(images, reuse=None, n_conv_layer=3):
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
     """
+
+    lod_in = tf.cast(tf.get_variable('lod', initializer=np.float32(0.0), trainable=False), 'float32')
 
     if channel_first_disc == True:
         channels_key = 'channels_first'
@@ -343,22 +364,30 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 
         # ----- LoopLayers, Conv, Leaky ----- #
         karras_disc_in = []
-        for i in range(n_conv_layer):
+        for i in range(n_conv_layer-1, -1, -1):
             print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
-
             output = layers.conv2d(output,
                                    filters=n_filters * const_filt,
                                    kernel_size=kernel_size,
                                    strides=strides,
                                    padding='same',
                                    data_format=channels_key)
-
             print(output)
-
             output = tf.maximum(leakage * output, output)
             n_filters = int(n_filters * 2)
 
-            karras_disc_in.append(output)
+            # ----------------------------------------------------------
+            # KARRAS
+            x = output
+            if i < n_conv_layer:
+                img = downscale2d(img)
+                y = fromRGB(img, i - 1)
+
+            with tf.variable_scope('Layer%d' % i):
+                x = lerp_clip(x, y, lod_in - i)
+            # ----------------------------------------------------------
+
+        output = x
 
         output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * const_filt)])
         print(' D: reshape linear layer')
