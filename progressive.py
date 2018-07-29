@@ -97,7 +97,7 @@ if cifar10_data:
 
 OUTPUT_DIM = int(resolution_image ** 2) * channels
 DEVICES = ['/gpu:{}'.format(i) for i in range(N_GPU)]
-
+n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
 
 # ---- PRINT ----
 def print_log():
@@ -378,6 +378,9 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 
             # ----------------------------------------------------------
             # KARRAS
+
+            # -----> check here: to be finished
+
             x = output
             if i < n_conv_layer:
                 img = downscale2d(img)
@@ -409,11 +412,15 @@ def discriminator(images, reuse=None, n_conv_layer=3):
     return scores_out, labels_out
 
 
-def get_trainable_variables():  # used in optimizer/minimize (training)
-    """
-    :return: trainable variables (d_vars, g_vars)
-    """
+def get_right_layer(i):
     tvars = tf.trainable_variables()
+    layer_name = 'Layer'+str(i)
+    layer_vars = [var for var in tvars if layer_name in var.name]
+    return layer_vars
+
+def get_trainable_variables(i):  # used in optimizer/minimize (training)
+    tvars = tf.trainable_variables()
+    tvars = get_right_layer(i)
     d_vars = [var for var in tvars if 'Discriminator' in var.name]
     g_vars = [var for var in tvars if 'Generator' in var.name]
     return d_vars, g_vars
@@ -604,17 +611,24 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
     fake_accuracy_mean = tf.add_n(fake_accuracy_list) / len(DEVICES)
 
     # ---------------------------------- Optimizers ----------------------------------- #
-    # Trainable variables
-    d_vars, g_vars = get_trainable_variables()
 
-    generator_optimizer = tf.train.AdamOptimizer(learning_rate=learn_rate,
-                                                 beta1=beta1_opti,
-                                                 beta2=beta2_opti).minimize(generator_loss_mean, var_list=g_vars)
+    generator_optimizer = []
+    discriminator_optimizer = []
 
-    discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=learn_rate,
-                                                     beta1=beta1_opti,
-                                                     beta2=beta2_opti).minimize(discriminator_loss_mean,
-                                                                                var_list=d_vars)
+    for i in range(n_conv_layer):
+
+        # Trainable variables (layer already included)
+        d_vars, g_vars = get_trainable_variables(i)
+
+        generator_optimizer.append(tf.train.AdamOptimizer(learning_rate=learn_rate,
+                                                          beta1=beta1_opti,
+                                                          beta2=beta2_opti).minimize(generator_loss_mean,
+                                                                                     var_list=g_vars))
+
+        discriminator_optimizer.append(tf.train.AdamOptimizer(learning_rate=learn_rate,
+                                                              beta1=beta1_opti,
+                                                              beta2=beta2_opti).minimize(discriminator_loss_mean,
+                                                                                         var_list=d_vars))
 
     # ------------------------------------ Train ---------------------------------------------- #
     print(' - - - - - - - - - - TRAIN - - - - - - - - - - ')
@@ -661,6 +675,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
     # EPOCHS FOR
     init_time = time.time()
     for epoch in range(num_epochs):
+
+        right_layer = min(epoch, n_conv_layer)
 
         start_time = time.time()
         print()
@@ -711,7 +727,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                                             disc_labels_loss_mean,
                                             real_accuracy_mean,
                                             fake_accuracy_mean,
-                                            discriminator_optimizer],
+                                            discriminator_optimizer[right_layer]],
                                            feed_dict={all_input_generator: discriminator_labels_with_noise,
                                                       all_real_data: img_samples,
                                                       all_real_labels: img_labels,
@@ -745,7 +761,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             gen_run_out = session.run([generator_loss_mean,
                                        gen_wasserstein_loss_mean,
                                        gen_labels_loss_mean,
-                                       generator_optimizer],
+                                       generator_optimizer[right_layer]],
                                       feed_dict={all_input_generator: generator_labels_with_noise,
                                                  all_real_labels: fake_labels_onehot,
                                                  label_weights: labels_incremental_weight})
