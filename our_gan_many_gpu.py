@@ -19,49 +19,49 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 12000  # seconds
+timer = 12000            # seconds
 
 # random seed
 seed = 100
 np.random.seed(seed)
 
 # Dataset
-mnist_data = False  # 28 28 (1)
-fashion_data = False  # 28 28 (1)
-cifar10_data = True  # 32 32 (3)
+mnist_data   = False     # 28 28 (1)
+fashion_data = False     # 28 28 (1)
+cifar10_data = True      # 32 32 (3)
 
 # GAN architecture
-num_epochs = 50  # tot epochs
-batch_size = 64  # micro batch size
-disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 128  # input dim (paper 128, but suggested 64)
-is_n_batch = 20  # number of batches for EACH class for Inception Score evaluation
+num_epochs = 50          # tot epochs
+batch_size = 64          # micro batch size
+disc_iters = 10          # Number of discriminator updates each generator update. The paper uses 5.
+latent_dim = 128         # input dim (paper 128, but suggested 64)
+is_n_batch = 20          # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
-wasserst_w = 1  # wasserstain weight (always 1)
-grad_pen_w = 40  # in the paper 10
-learn_rate = 2e-4  # in the paper 1/2e-4
-beta1_opti = 0.5  # in the paper 0.5
-beta2_opti = 0.9  # in the paper 0.9
-label_incr = 1  # increment of labels weight (saturate in 1)
-label_satu = 1  # max label weight
+wasserst_w = 1           # wasserstain weight (always 1)
+grad_pen_w = 40          # in the paper 10
+learn_rate = 2e-4        # in the paper 1/2e-4
+beta1_opti = 0.5         # in the paper 0.5
+beta2_opti = 0.9         # in the paper 0.9
+label_incr = 1           # increment of labels weight (saturate in 1)
+label_satu = 1           # max label weight
 
 # CONV Parameters
-const_filt = 70  # number of filters (paper 64) [96 maybe better]
-kernel_size = (5, 5)  # conv kenel size
-strides = 2  # conv strides
-size_init = 4  # in the paper 4
-leakage = 0.01  # leaky relu constant
+const_filt = 70          # number of filters (paper 64) [96 maybe better]
+kernel_size = (5, 5)     # conv kenel size
+strides = 2              # conv strides
+size_init = 4            # in the paper 4
+leakage = 0.01           # leaky relu constant
 
 # number of GPUs
-N_GPU = 1  # need to change if many gpu!
+N_GPU = 1                # need to change if many gpu!
 
 # verbose
-fixed_noise = True  # always use same noise for image samples
-sample_repetitions = 5  # to get more rows of images of same epoch in same plot (always put highest value)
-always_get_loss = True  # get loss each epoch
+fixed_noise = True       # always use same noise for image samples
+sample_repetitions = 5   # to get more rows of images of same epoch in same plot (always put highest value)
+always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_in_out = False  # print disc images and values
+check_in_out = False     # print disc images and values
 version = "gan"
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
@@ -200,7 +200,7 @@ def generator(n_samples, noise_with_labels, reuse=None):
     print(' G: n-filters generator:    ', n_filters)
 
     with tf.variable_scope('Generator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
-        # get variables of discriminator
+
         # ----- Layer1, Dense, Batch, Leaky ----- #
         print(' G: units dense generator: ', channels * (size_init * size_init) * (n_filters * const_filt))
 
@@ -225,7 +225,6 @@ def generator(n_samples, noise_with_labels, reuse=None):
         print(output)
 
         # ----- LoopLayers, deConv, Batch, Leaky ----- #
-        karras_gen_out = []
         for i in range(n_conv_layer):
 
             if resolution_image == 28 and size_init * (1 + i) == 8:
@@ -252,14 +251,13 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
             n_filters = int(n_filters / 2)
 
-            karras_gen_out.append(output)
 
         # ----- LastLayer, deConv, Batch, Leaky ----- #
 
         print(' G: last conv2d_transpose layer - n filters layer: ', channels)
         output = layers.conv2d_transpose(output,
                                          filters=1 * channels,
-                                         kernel_size=kernel_size,
+                                         kernel_size=kernel_size, # 1 or kernel_size???? to check
                                          strides=1,
                                          padding='same')
         print(output)
@@ -305,7 +303,7 @@ def discriminator(images, reuse=None, n_conv_layer=3):
         print(output)
 
         # ----- LoopLayers, Conv, Leaky ----- #
-        karras_disc_in = []
+
         for i in range(n_conv_layer):
             print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
 
@@ -320,8 +318,6 @@ def discriminator(images, reuse=None, n_conv_layer=3):
 
             output = tf.maximum(leakage * output, output)
             n_filters = int(n_filters * 2)
-
-            karras_disc_in.append(output)
 
         output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * const_filt)])
         print(' D: reshape linear layer')

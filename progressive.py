@@ -8,7 +8,7 @@ from tensorflow import layers
 import time
 import matplotlib.pyplot as plt
 
-tf_config['graph_options.place_pruned_graph']   = True
+# tf_config['graph_options.place_pruned_graph']   = True
 
 # import tqdm only if previously installed
 try:
@@ -35,7 +35,7 @@ cifar10_data = True  # 32 32 (3)
 # GAN architecture
 num_epochs = 50    # tot epochs
 batch_size = 64    # micro batch size
-disc_iters = 10    # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 1     # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128   # input dim (paper 128, but suggested 64)
 is_n_batch = 20    # number of batches for EACH class for Inception Score evaluation
 
@@ -302,20 +302,21 @@ def generator(n_samples, noise_with_labels, reuse=None):
             if i == 0:
                 img_out = img_new
             else:
-                img_out = upscale2d(output)
+                img_out = upscale2d(img_out)
 
             with tf.variable_scope('Layer%d' % i):
                 img_out = lerp_clip(img_new, img_out, lod_in - i)
-                # img_out_list.append(img_out)
+                img_out_list.append(img_out)
 
-        return img_out
+
+        return img_out, img_out_list
 
 def fromRGB(output, n_filters):
     # if channel first you need to change channel key
 
     output = layers.conv2d(output,
                            filters=n_filters * const_filt,
-                           kernel_size=kernel_size,
+                           kernel_size=1,
                            strides=strides,
                            padding='same')
     return output
@@ -329,7 +330,7 @@ def downscale2d(x, factor=2):
                               data_format='NCHW')  # NOTE: requires tf_config['graph_options.place_pruned_graph'] = True
 
 
-def discriminator(images, reuse=None, n_conv_layer=3):
+def discriminator(images, lod_in = 1, reuse=None):
     """
     :param images:    images that are input of the discriminator
     :return:          likeliness of the image
@@ -363,8 +364,11 @@ def discriminator(images, reuse=None, n_conv_layer=3):
         print(output)
 
         # ----- LoopLayers, Conv, Leaky ----- #
-        karras_disc_in = []
+        img = output
+        output = fromRGB(output, n_filters)
+
         for i in range(n_conv_layer-1, -1, -1):
+
             print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
             output = layers.conv2d(output,
                                    filters=n_filters * const_filt,
@@ -376,21 +380,14 @@ def discriminator(images, reuse=None, n_conv_layer=3):
             output = tf.maximum(leakage * output, output)
             n_filters = int(n_filters * 2)
 
-            # ----------------------------------------------------------
-            # KARRAS
-
-            # -----> check here: to be finished
-
             x = output
-            if i < n_conv_layer:
-                img = downscale2d(img)
-                y = fromRGB(img, i - 1)
-
+            img = downscale2d(img)
+            y = fromRGB(img, i - 1)
             with tf.variable_scope('Layer%d' % i):
                 x = lerp_clip(x, y, lod_in - i)
+            output = x
             # ----------------------------------------------------------
 
-        output = x
 
         output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * const_filt)])
         print(' D: reshape linear layer')
@@ -463,159 +460,161 @@ y_train = y_hot
 
 # TF Session
 with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
-    # TEST SAMPLE GENERATION SESSION
-    print('----------------- G: TEST SAMPLES    -----------------')
-    test_input = tf.placeholder(tf.float32, shape=[sample_repetitions * num_labels, latent_dim + num_labels])
-    test_samples = generator(num_labels, test_input, reuse=True)
-
-    # Inception Score SAMPLES
-    print('----------------- G: Inception Score SAMPLES    -----------------')
-    is_input = tf.placeholder(tf.float32, shape=[batch_size * num_labels, latent_dim + num_labels])
-    is_samples = generator(num_labels, is_input, reuse=True)
-
-    # TRAINING SESSION
-    label_weights = tf.placeholder(tf.float32, shape=())
-
-    all_input_generator = tf.placeholder(tf.float32, shape=[batch_size, latent_dim + num_labels])
-    all_real_data = tf.placeholder(tf.float32, shape=[batch_size, OUTPUT_DIM])
-    all_real_labels = tf.placeholder(tf.float32, shape=[batch_size, num_labels])
-
-    # split over GPUs
-    binder_real_data = tf.split(all_real_data, len(DEVICES))
-    binder_real_labels = tf.split(all_real_labels, len(DEVICES))
-    binder_input_generator = tf.split(all_input_generator, len(DEVICES))
-
-    # list used for mean over GPUs
-    generator_loss_list = []
-    discriminator_loss_list = []
-
-    gradient_penalty_list = []
-    disc_wasserstein_loss_list = []
-    disc_labels_loss_list = []
-
-    gen_wasserstein_loss_list = []
-    gen_labels_loss_list = []
-
-    real_accuracy_list = []
-    fake_accuracy_list = []
-
-    # split batch_size
-    batch_size = int(batch_size // len(DEVICES))
-
-    # for device_index, (device, one_device_real_data, one_device_real_labels, one_device_input_generator)
-    # in enumerate(zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
-
-    # for each GPU, select relative sub-batch of data
-    for device_index, (device, real_samples, labels, input_generator) in enumerate(
-            zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
-        # device_index is easy incremental int
-        # device = DEVICE[i]
-        # real_data_conv = split_real_data_conv[i]
-
-        print('GPU device_index: ', device_index)
-
-        # choose what GPU
-        with tf.device(device):
-            # ----------------------------------- Outputs ----------------------------------- #
-            print('----------------- G: FAKE SAMPLES    -----------------')
-            fake_samples = generator(batch_size, input_generator, reuse=True)
-
-            print('----------------- D: DISC REAL SCORE -----------------')
-            disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
-
-            print('----------------- D: DISC FAKE SCORE -----------------')
-            disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
-
-            # ---------------------------------- Losses ------------------------------------ #
-
-            # ----- Gen Loss ----- #
-
-            # wasserstein
-            gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score) * wasserst_w  # WASSERSTEIN
-
-            # labels
-            labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-                                                                           logits=disc_fake_labels)
-            gen_labels_loss = labels_penalty_fakes * label_weights
-
-            # total gen loss
-            generator_loss = gen_wasserstein_loss + gen_labels_loss
-
-            # ----- Disc Loss ----- #
-
-            # wasserstein
-            disc_wasserstein_loss = (tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)) * wasserst_w
-
-            # labels
-            labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-                                                                           logits=disc_fake_labels)
-            labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
-                                                                          logits=disc_real_labels)
-            fake_labels_weight = 0  # this should be a placeholder
-
-            # tot labels loss
-            disc_labels_loss = (fake_labels_weight * labels_penalty_fakes + labels_penalty_real) * label_weights
-
-            # gradient penalty
-            alpha = tf.random_uniform(shape=[batch_size, 1], minval=0., maxval=1.)
-            differences = fake_samples - real_samples
-            interpolates = real_samples + alpha * differences
-            gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
-            slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
-            gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) * grad_pen_w
-
-            # sum losses
-            discriminator_loss = disc_wasserstein_loss + disc_labels_loss + gradient_penalty
-
-            # append all losses
-            generator_loss_list.append(generator_loss)
-            discriminator_loss_list.append(discriminator_loss)
-            # single losses:
-            #  - disc
-            gradient_penalty_list.append(gradient_penalty)
-            disc_wasserstein_loss_list.append(disc_wasserstein_loss)
-            disc_labels_loss_list.append(disc_labels_loss)
-            # - gen
-            gen_wasserstein_loss_list.append(gen_wasserstein_loss)
-            gen_labels_loss_list.append(gen_labels_loss)
-
-            # ---------- ACCURACY --------
-
-            # disc accuracy on REAL img
-            real_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_real_labels, 1))
-            real_accuracy = tf.reduce_mean(tf.cast(real_correct_pred, tf.float32))
-            real_accuracy_list.append(real_accuracy)
-
-            # disc accuracy of FAKE img ---> i.e. gen accuracy
-            fake_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_fake_labels, 1))
-            fake_accuracy = tf.reduce_mean(tf.cast(fake_correct_pred, tf.float32))
-            fake_accuracy_list.append(fake_accuracy)
-
-    # end gpu iter
-
-    # get total average cost of total BATCH (over the gpus)
-    generator_loss_mean = tf.add_n(generator_loss_list) / len(DEVICES)
-    discriminator_loss_mean = tf.add_n(discriminator_loss_list) / len(DEVICES)
-
-    # single average losses:
-    #  - disc
-    gradient_penalty_mean = tf.add_n(gradient_penalty_list) / len(DEVICES)
-    disc_wasserstein_loss_mean = tf.add_n(disc_wasserstein_loss_list) / len(DEVICES)
-    disc_labels_loss_mean = tf.add_n(disc_labels_loss_list) / len(DEVICES)
-    # - gen
-    gen_wasserstein_loss_mean = tf.add_n(gen_wasserstein_loss_list) / len(DEVICES)
-    gen_labels_loss_mean = tf.add_n(gen_labels_loss_list) / len(DEVICES)
-
-    # get total average accuracy
-    real_accuracy_mean = tf.add_n(real_accuracy_list) / len(DEVICES)
-    fake_accuracy_mean = tf.add_n(fake_accuracy_list) / len(DEVICES)
-
-    # ---------------------------------- Optimizers ----------------------------------- #
-
     generator_optimizer = []
     discriminator_optimizer = []
 
     for i in range(n_conv_layer):
+
+        # TEST SAMPLE GENERATION SESSION
+        print('----------------- G: TEST SAMPLES    -----------------')
+        test_input = tf.placeholder(tf.float32, shape=[sample_repetitions * num_labels, latent_dim + num_labels])
+        test_samples = generator(num_labels, test_input, reuse=True)[i]
+
+        # Inception Score SAMPLES
+        print('----------------- G: Inception Score SAMPLES    -----------------')
+        is_input = tf.placeholder(tf.float32, shape=[batch_size * num_labels, latent_dim + num_labels])
+        is_samples = generator(num_labels, is_input, reuse=True)[i]
+
+        # TRAINING SESSION
+        label_weights = tf.placeholder(tf.float32, shape=())
+
+        all_input_generator = tf.placeholder(tf.float32, shape=[batch_size, latent_dim + num_labels])
+        all_real_data = tf.placeholder(tf.float32, shape=[batch_size, OUTPUT_DIM])
+        all_real_labels = tf.placeholder(tf.float32, shape=[batch_size, num_labels])
+
+        # split over GPUs
+        binder_real_data = tf.split(all_real_data, len(DEVICES))
+        binder_real_labels = tf.split(all_real_labels, len(DEVICES))
+        binder_input_generator = tf.split(all_input_generator, len(DEVICES))
+
+        # list used for mean over GPUs
+        generator_loss_list = []
+        discriminator_loss_list = []
+
+        gradient_penalty_list = []
+        disc_wasserstein_loss_list = []
+        disc_labels_loss_list = []
+
+        gen_wasserstein_loss_list = []
+        gen_labels_loss_list = []
+
+        real_accuracy_list = []
+        fake_accuracy_list = []
+
+        # split batch_size
+        batch_size = int(batch_size // len(DEVICES))
+
+        # for device_index, (device, one_device_real_data, one_device_real_labels, one_device_input_generator)
+        # in enumerate(zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
+
+        # for each GPU, select relative sub-batch of data
+        for device_index, (device, real_samples, labels, input_generator) in enumerate(
+                zip(DEVICES, binder_real_data, binder_real_labels, binder_input_generator)):
+            # device_index is easy incremental int
+            # device = DEVICE[i]
+            # real_data_conv = split_real_data_conv[i]
+
+            print('GPU device_index: ', device_index)
+
+            # choose what GPU
+            with tf.device(device):
+                # ----------------------------------- Outputs ----------------------------------- #
+
+                print('----------------- G: FAKE SAMPLES    -----------------')
+                fake_samples = generator(batch_size, input_generator, reuse=True)[i]
+
+                print('----------------- D: DISC REAL SCORE -----------------')
+                disc_real_score, disc_real_labels = discriminator(real_samples, reuse=True)
+
+                print('----------------- D: DISC FAKE SCORE -----------------')
+                disc_fake_score, disc_fake_labels = discriminator(fake_samples, reuse=True)
+
+                # ---------------------------------- Losses ------------------------------------ #
+
+                # ----- Gen Loss ----- #
+
+                # wasserstein
+                gen_wasserstein_loss = -tf.reduce_mean(disc_fake_score) * wasserst_w  # WASSERSTEIN
+
+                # labels
+                labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+                                                                               logits=disc_fake_labels)
+                gen_labels_loss = labels_penalty_fakes * label_weights
+
+                # total gen loss
+                generator_loss = gen_wasserstein_loss + gen_labels_loss
+
+                # ----- Disc Loss ----- #
+
+                # wasserstein
+                disc_wasserstein_loss = (tf.reduce_mean(disc_fake_score) - tf.reduce_mean(disc_real_score)) * wasserst_w
+
+                # labels
+                labels_penalty_fakes = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+                                                                               logits=disc_fake_labels)
+                labels_penalty_real = tf.nn.softmax_cross_entropy_with_logits(labels=labels,  # (deprecated)
+                                                                              logits=disc_real_labels)
+                fake_labels_weight = 0  # this should be a placeholder
+
+                # tot labels loss
+                disc_labels_loss = (fake_labels_weight * labels_penalty_fakes + labels_penalty_real) * label_weights
+
+                # gradient penalty
+                alpha = tf.random_uniform(shape=[batch_size, 1], minval=0., maxval=1.)
+                differences = fake_samples - real_samples
+                interpolates = real_samples + alpha * differences
+                gradients = tf.gradients(discriminator(interpolates, reuse=True)[0], [interpolates])[0]
+                slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
+                gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2) * grad_pen_w
+
+                # sum losses
+                discriminator_loss = disc_wasserstein_loss + disc_labels_loss + gradient_penalty
+
+                # append all losses
+                generator_loss_list.append(generator_loss)
+                discriminator_loss_list.append(discriminator_loss)
+                # single losses:
+                #  - disc
+                gradient_penalty_list.append(gradient_penalty)
+                disc_wasserstein_loss_list.append(disc_wasserstein_loss)
+                disc_labels_loss_list.append(disc_labels_loss)
+                # - gen
+                gen_wasserstein_loss_list.append(gen_wasserstein_loss)
+                gen_labels_loss_list.append(gen_labels_loss)
+
+                # ---------- ACCURACY --------
+
+                # disc accuracy on REAL img
+                real_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_real_labels, 1))
+                real_accuracy = tf.reduce_mean(tf.cast(real_correct_pred, tf.float32))
+                real_accuracy_list.append(real_accuracy)
+
+                # disc accuracy of FAKE img ---> i.e. gen accuracy
+                fake_correct_pred = tf.equal(tf.argmax(labels, 1), tf.argmax(disc_fake_labels, 1))
+                fake_accuracy = tf.reduce_mean(tf.cast(fake_correct_pred, tf.float32))
+                fake_accuracy_list.append(fake_accuracy)
+
+        # end gpu iter
+
+        # get total average cost of total BATCH (over the gpus)
+        generator_loss_mean = tf.add_n(generator_loss_list) / len(DEVICES)
+        discriminator_loss_mean = tf.add_n(discriminator_loss_list) / len(DEVICES)
+
+        # single average losses:
+        #  - disc
+        gradient_penalty_mean = tf.add_n(gradient_penalty_list) / len(DEVICES)
+        disc_wasserstein_loss_mean = tf.add_n(disc_wasserstein_loss_list) / len(DEVICES)
+        disc_labels_loss_mean = tf.add_n(disc_labels_loss_list) / len(DEVICES)
+        # - gen
+        gen_wasserstein_loss_mean = tf.add_n(gen_wasserstein_loss_list) / len(DEVICES)
+        gen_labels_loss_mean = tf.add_n(gen_labels_loss_list) / len(DEVICES)
+
+        # get total average accuracy
+        real_accuracy_mean = tf.add_n(real_accuracy_list) / len(DEVICES)
+        fake_accuracy_mean = tf.add_n(fake_accuracy_list) / len(DEVICES)
+
+        # ---------------------------------- Optimizers ----------------------------------- #
+
 
         # Trainable variables (layer already included)
         d_vars, g_vars = get_trainable_variables(i)
