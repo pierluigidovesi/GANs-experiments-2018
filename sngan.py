@@ -19,42 +19,42 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 9000            # seconds
+timer = 11000         # seconds
 
 # random seed
 seed = 100
 np.random.seed(seed)
 
 # Dataset
-mnist_data   = False     # 28 28 (1)
-fashion_data = False     # 28 28 (1)
-cifar10_data = True      # 32 32 (3)
+mnist_data   = False  # 28 28 (1)
+fashion_data = False  # 28 28 (1)
+cifar10_data = True   # 32 32 (3)
 
 # GAN architecture
-num_epochs = 50          # tot epochs
-batch_size = 64          # micro batch size
-disc_iters = 5          # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 128         # input dim (paper 128, but suggested 64)
-is_n_batch = 20          # number of batches for EACH class for Inception Score evaluation
+num_epochs = 50       # tot epochs
+batch_size = 64       # micro batch size
+disc_iters = 10       # Number of discriminator updates each generator update. The paper uses 5.
+latent_dim = 128      # input dim (paper 128, but suggested 64)
+is_n_batch = 20       # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
-wasserst_w = 1           # wasserstain weight (always 1)
-grad_pen_w = 10          # in the paper 10
-learn_rate = 2e-4        # in the paper 1/2e-4
-beta1_opti = 0.5         # in the paper 0.5
-beta2_opti = 0.9         # in the paper 0.9
-label_incr = 0.05           # increment of labels weight (saturate in 1)
-label_satu = 1           # max label weight
+wasserst_w = 1        # wasserstain weight (always 1)
+grad_pen_w = 40       # in the paper 10
+learn_rate = 2e-4     # in the paper 1/2e-4
+beta1_opti = 0.5      # in the paper 0.5
+beta2_opti = 0.9      # in the paper 0.9
+label_incr = 1        # increment of labels weight (saturate in 1)
+label_satu = 1        # max label weight
 
 # CONV Parameters
-const_filt = 64          # number of filters (paper 64) [96 maybe better]
-kernel_size = (5, 5)     # conv kenel size
-strides = 2              # conv strides
-size_init = 4            # in the paper 4
-leakage = 0.01           # leaky relu constant
+const_filt  = 96      # number of filters (paper 64) [96 maybe better]
+kernel_size = (5, 5)  # conv kenel size
+strides     = 2       # conv strides
+size_init   = 4       # in the paper 4
+leakage     = 0.01    # leaky relu constant
 
 # number of GPUs
-N_GPU = 1                # need to change if many gpu!
+N_GPU = 1             # need to change if many gpu!
 
 # verbose
 fixed_noise = True       # always use same noise for image samples
@@ -185,11 +185,7 @@ def generate_images(images, epoch, repetitions=1):
 
 
 def generator(n_samples, noise_with_labels, reuse=None):
-    """
-    :param n_samples:         number of samples
-    :param noise_with_labels: latent noise + labels
-    :return:                  generated images
-    """
+
     # (if image size is a power of 2 --> you can: n_filter = image_res/n_filter)
     # get number of layers and filters
 
@@ -251,13 +247,12 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
             n_filters = int(n_filters / 2)
 
-
         # ----- LastLayer, deConv, Batch, Leaky ----- #
 
         print(' G: last conv2d_transpose layer - n filters layer: ', channels)
         output = layers.conv2d_transpose(output,
                                          filters=1 * channels,
-                                         kernel_size=kernel_size, # 1 or kernel_size???? to check
+                                         kernel_size=kernel_size,  # 1 or kernel_size???? to check
                                          strides=1,
                                          padding='same')
         print(output)
@@ -270,110 +265,111 @@ def generator(n_samples, noise_with_labels, reuse=None):
 
     return output
 
+
 def spectral_norm(w, i, iteration=1):
-   w_shape = w.shape.as_list()
-   w = tf.reshape(w, [-1, w_shape[-1]])
+    w_shape = w.shape.as_list()
+    w = tf.reshape(w, [-1, w_shape[-1]])
 
-   u = tf.get_variable("u"+str(i), [1, w_shape[-1]], initializer=tf.random_normal_initializer(), trainable=False)
+    u = tf.get_variable("u" + str(i), [1, w_shape[-1]], initializer=tf.random_normal_initializer(), trainable=False)
 
-   u_hat = u
-   v_hat = None
-   for i in range(iteration):
-       """
+    u_hat = u
+    v_hat = None
+    for i in range(iteration):
+        """
        power iteration
        Usually iteration = 1 will be enough
        """
-       v_ = tf.matmul(u_hat, tf.transpose(w))
-       v_hat = tf.nn.l2_normalize(v_)
+        v_ = tf.matmul(u_hat, tf.transpose(w))
+        v_hat = tf.nn.l2_normalize(v_)
 
-       u_ = tf.matmul(v_hat, w)
-       u_hat = tf.nn.l2_normalize(u_)
+        u_ = tf.matmul(v_hat, w)
+        u_hat = tf.nn.l2_normalize(u_)
 
-   u_hat = tf.stop_gradient(u_hat)
-   v_hat = tf.stop_gradient(v_hat)
+    u_hat = tf.stop_gradient(u_hat)
+    v_hat = tf.stop_gradient(v_hat)
 
-   sigma = tf.matmul(tf.matmul(v_hat, w), tf.transpose(u_hat))
+    sigma = tf.matmul(tf.matmul(v_hat, w), tf.transpose(u_hat))
 
-   with tf.control_dependencies([u.assign(u_hat)]):
-       w_norm = w / sigma
-       w_norm = tf.reshape(w_norm, w_shape)
+    with tf.control_dependencies([u.assign(u_hat)]):
+        w_norm = w / sigma
+        w_norm = tf.reshape(w_norm, w_shape)
+
+    return w_norm
 
 
-   return w_norm
 def discriminator(images, reuse=None, n_conv_layer=3):
-  """
-    :param images:    images that are input of the discriminator
-    :return:          likeliness of the image
-    """
 
-  if channel_first_disc == True:
-      channels_key = 'channels_first'
-      channels_code = "NCHW"
-  else:
-      channels_key = 'channels_last'
-      channels_code = "NHWC"
+    if channel_first_disc:
+        channels_key = 'channels_first'
+        channels_code = "NCHW"
+    else:
+        channels_key = 'channels_last'
+        channels_code = "NHWC"
 
-  n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
-  n_filters = 1
+    n_conv_layer = int(np.ceil(np.log2(resolution_image / size_init)))
+    n_filters = 1
 
-  print(' D: n-conv layer discriminator: ', n_conv_layer)
-  print(' D: n-filters discriminator:    ', n_filters)
+    print(' D: n-conv layer discriminator: ', n_conv_layer)
+    print(' D: n-filters discriminator:    ', n_filters)
 
-  with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
-      # get variables of generator
-      print(' D: input')
-      print(images)
-      
-      if channel_first_disc:
-          print('channel first disc ON')
-          output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
-      else:
-          output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
+    with tf.variable_scope('Discriminator', reuse=tf.AUTO_REUSE):  # Needed for later, in order to
+        # get variables of generator
+        print(' D: input')
+        print(images)
 
-      print(' D: channel reshape')
-      print(output)
+        if channel_first_disc:
+            print('channel first disc ON')
+            output = tf.reshape(images, [-1, channels, resolution_image, resolution_image])
+        else:
+            output = tf.reshape(images, [-1, resolution_image, resolution_image, channels])
 
-      # ----- LoopLayers, Conv, Leaky ----- #
+        print(' D: channel reshape')
+        print(output)
 
-      for i in range(n_conv_layer):
-          print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
-          # GETTING THE WEIGHTS THAT WILL BE NORMALIZED.
-          print(output)
-          print("Kernel print:" +"("+ str(i)+")" )
-          w = tf.get_variable("kernel"+str(i), shape=[kernel_size[0], kernel_size[1], output.get_shape()[-1], n_filters * const_filt])
-          print(w)
-          print("constant print:" + "("+ str(i)+")" )
-          b = tf.get_variable("constant"+str(i), [n_filters * const_filt], initializer=tf.constant_initializer(0.0))
-          print(b)
-          output = tf.nn.conv2d(input = output,
-                                 filter = spectral_norm(w, i),
-                                 strides= [1, strides, strides, 1],
-                                 padding='SAME',
-                                 data_format = channels_code) + b
+        # ----- LoopLayers, Conv, Leaky ----- #
 
-          print(output)
+        for i in range(n_conv_layer):
+            print(' D: conv2d iter: ', i, ' - n_filters: ', n_filters)
 
-          output = tf.maximum(leakage * output, output)
-          n_filters = int(n_filters * 2)
+            # GETTING THE WEIGHTS THAT WILL BE NORMALIZED.
+            print(output)
+            print("Kernel print:" + "(" + str(i) + ")")
+            w = tf.get_variable("kernel" + str(i),
+                                shape=[kernel_size[0], kernel_size[1], output.get_shape()[-1], n_filters * const_filt])
+            print(w)
+            print("constant print:" + "(" + str(i) + ")")
+            b = tf.get_variable("constant" + str(i), [n_filters * const_filt], initializer=tf.constant_initializer(0.0))
+            print(b)
+            output = tf.nn.conv2d(input=output,
+                                  filter=spectral_norm(w, i), # <-- HERE SPECTRAL NORM!
+                                  strides=[1, strides, strides, 1],
+                                  padding='SAME',
+                                  data_format=channels_code) + b
 
-      output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * const_filt)])
-      print(' D: reshape linear layer')
-      print(output)
+            print(output)
 
-      # ----- Layer4, Dense, Linear ----- #
-      output = layers.dense(output, units=num_labels + 1)
-      print(' D: dense layer output')
-      print(output)
+            output = tf.maximum(leakage * output, output)
+            n_filters = int(n_filters * 2)
 
-  scores_out = tf.identity(output[:, :1], name='scores_out')
-  labels_out = tf.identity(output[:, 1:], name='labels_out')
+        output = tf.reshape(output, [-1, size_init * size_init * (int(n_filters / 2) * const_filt)])
+        print(' D: reshape linear layer')
+        print(output)
 
-  print(' D: scores output')
-  print(scores_out)
-  print(' D: labels output')
-  print(labels_out)
+        # ----- Layer4, Dense, Linear ----- #
+        output = layers.dense(output, units=num_labels + 1)
+        print(' D: dense layer output')
+        print(output)
 
-  return scores_out, labels_out
+    scores_out = tf.identity(output[:, :1], name='scores_out')
+    labels_out = tf.identity(output[:, 1:], name='labels_out')
+
+    print(' D: scores output')
+    print(scores_out)
+    print(' D: labels output')
+    print(labels_out)
+
+    return scores_out, labels_out
+
 
 def get_trainable_variables():  # used in optimizer/minimize (training)
     """

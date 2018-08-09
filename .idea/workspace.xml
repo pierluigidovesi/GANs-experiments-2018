@@ -6,8 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="c8d67dd8-0246-4a9a-a91f-4ae4462819b5" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/our_gan_many_gpu.py" beforeDir="false" afterPath="$PROJECT_DIR$/our_gan_many_gpu.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/progressive.py" beforeDir="false" afterPath="$PROJECT_DIR$/progressive.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sngan.py" beforeDir="false" afterPath="$PROJECT_DIR$/sngan.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,47 +18,60 @@
     <session id="870240691">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="12" />
+          <entry key="project.closed" value="15" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.10" value="1" />
           <entry key="project.open.time.11" value="1" />
           <entry key="project.open.time.3" value="1" />
-          <entry key="project.open.time.6" value="2" />
-          <entry key="project.open.time.7" value="4" />
+          <entry key="project.open.time.5" value="1" />
+          <entry key="project.open.time.6" value="3" />
+          <entry key="project.open.time.7" value="5" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="2" />
-          <entry key="project.opened" value="13" />
+          <entry key="project.opened" value="16" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="2533" />
+          <entry key="py" value="2695" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="2533" />
+          <entry key="Python" value="2695" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="9" />
+          <entry key="py" value="10" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="9" />
+          <entry key="Python" value="10" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3906">
-              <caret line="765" column="30" selection-start-line="765" selection-start-column="30" selection-end-line="765" selection-end-column="30" />
+            <state relative-caret-position="15960">
+              <caret line="761" column="67" selection-start-line="761" selection-start-column="67" selection-end-line="761" selection-end-column="67" />
+              <folding>
+                <element signature="e#0#22#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/sngan.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-1932">
+              <caret line="49" column="16" selection-start-line="49" selection-start-column="16" selection-end-line="49" selection-end-column="16" />
               <folding>
                 <element signature="e#0#22#0" expanded="true" />
               </folding>
@@ -90,11 +102,12 @@
       <list>
         <option value="$PROJECT_DIR$/progressive.py" />
         <option value="$PROJECT_DIR$/our_gan_many_gpu.py" />
+        <option value="$PROJECT_DIR$/sngan.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-37" />
+    <option name="x" value="-38" />
     <option name="y" value="-28" />
     <option name="width" value="2024" />
     <option name="height" value="1460" />
@@ -151,10 +164,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="-6" y="-6" width="1293" height="693" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13856691" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13762927" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -181,10 +194,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4843">
           <caret line="529" column="73" selection-start-line="529" selection-start-column="73" selection-end-line="529" selection-end-column="73" />
-          <folding>
-            <element signature="e#0#22#0" expanded="true" />
-            <marker date="1532973175650" expanded="true" signature="13895:13897" ph="..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -206,8 +215,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/our_gan_many_gpu.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3906">
-          <caret line="765" column="30" selection-start-line="765" selection-start-column="30" selection-end-line="765" selection-end-column="30" />
+        <state relative-caret-position="15960">
+          <caret line="761" column="67" selection-start-line="761" selection-start-column="67" selection-end-line="761" selection-end-column="67" />
+          <folding>
+            <element signature="e#0#22#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/sngan.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1932">
+          <caret line="49" column="16" selection-start-line="49" selection-start-column="16" selection-end-line="49" selection-end-column="16" />
           <folding>
             <element signature="e#0#22#0" expanded="true" />
           </folding>
