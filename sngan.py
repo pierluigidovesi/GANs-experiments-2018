@@ -19,7 +19,7 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 11000         # seconds
+timer = 3600*10       # seconds
 
 # random seed
 seed = 100
@@ -31,7 +31,7 @@ fashion_data = False  # 28 28 (1)
 cifar10_data = True   # 32 32 (3)
 
 # GAN architecture
-num_epochs = 50       # tot epochs
+num_epochs = 200      # tot epochs
 batch_size = 64       # micro batch size
 disc_iters = 10       # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128      # input dim (paper 128, but suggested 64)
