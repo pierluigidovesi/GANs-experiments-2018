@@ -6,6 +6,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import layers
 import time
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # import tqdm only if previously installed
