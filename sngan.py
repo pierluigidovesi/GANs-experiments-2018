@@ -22,7 +22,7 @@ except:
 timer = 3600*10       # seconds
 
 # random seed
-seed = 100
+seed = 200
 np.random.seed(seed)
 
 # Dataset
@@ -54,11 +54,11 @@ size_init   = 4       # in the paper 4
 leakage     = 0.01    # leaky relu constant
 
 # number of GPUs
-N_GPU = 1             # need to change if many gpu!
+N_GPU = 2             # need to change if many gpu!
 
 # verbose
 fixed_noise = True       # always use same noise for image samples
-sample_repetitions = 5   # to get more rows of images of same epoch in same plot (always put highest value)
+sample_repetitions = 10  # to get more rows of images of same epoch in same plot (always put highest value)
 always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
 check_in_out = False     # print disc images and values

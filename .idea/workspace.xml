@@ -17,27 +17,27 @@
     <session id="870240691">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="16" />
+          <entry key="project.closed" value="17" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.10" value="1" />
           <entry key="project.open.time.11" value="1" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.5" value="1" />
           <entry key="project.open.time.6" value="3" />
-          <entry key="project.open.time.7" value="5" />
+          <entry key="project.open.time.7" value="6" />
           <entry key="project.open.time.8" value="2" />
           <entry key="project.open.time.9" value="2" />
-          <entry key="project.opened" value="17" />
+          <entry key="project.opened" value="18" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="2709" />
+          <entry key="py" value="2715" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="2709" />
+          <entry key="Python" value="2715" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -69,8 +69,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/sngan.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="248">
-              <caret line="824" column="16" lean-forward="true" selection-start-line="824" selection-start-column="16" selection-end-line="824" selection-end-column="16" />
+            <state relative-caret-position="252">
+              <caret line="726" lean-forward="true" selection-start-line="726" selection-end-line="726" />
               <folding>
                 <element signature="e#0#22#0" expanded="true" />
               </folding>
@@ -224,8 +224,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/sngan.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="248">
-          <caret line="824" column="16" lean-forward="true" selection-start-line="824" selection-start-column="16" selection-end-line="824" selection-end-column="16" />
+        <state relative-caret-position="252">
+          <caret line="726" lean-forward="true" selection-start-line="726" selection-end-line="726" />
           <folding>
             <element signature="e#0#22#0" expanded="true" />
           </folding>
