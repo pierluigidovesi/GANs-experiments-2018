@@ -1,5 +1,6 @@
 import inception_score
 import os, sys
+import pickle
 
 sys.path.append(os.getcwd())
 import numpy as np
@@ -833,7 +834,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             print('INCEPTION SCORE: mean: ', is_result[0], ' std: ', is_result[1])
 
             is_history.append([elem for elem in is_result])
-            #disc_sum = plt.plot(np.array([item[0] for item in discriminator_history]), label='ALL')
+            with open("is_history.txt", "wb") as fp:
+                pickle.dump(is_history, fp)
+            
+            is_plot = plt.errorbar(np.array([item[0] for item in is_history]), label='inception score')
 
         #########################################################
 
