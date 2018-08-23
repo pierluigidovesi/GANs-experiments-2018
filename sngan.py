@@ -759,7 +759,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             disc_line = plt.plot(np.asarray([item[0] for item in discriminator_history]), label='DISC')
             gen_line = plt.plot(np.asarray([item[0] for item in generator_history]), label='GEN')
             plt.legend()
-            plt.savefig("GD_losses.png")+
+            plt.savefig("GD_losses.png")
 
             # discriminator losses
             plt.figure()
