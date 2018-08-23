@@ -37,7 +37,7 @@ num_epochs = 200      # tot epochs
 batch_size = 64       # micro batch size
 disc_iters = 50       # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128      # input dim (paper 128, but suggested 64)
-is_n_batch = 20       # number of batches for EACH class for Inception Score evaluation
+is_n_batch = 10       # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
 wasserst_w = 1        # wasserstain weight (always 1)
@@ -52,7 +52,7 @@ label_satu = 1        # max label weight
 const_filt  = 96      # number of filters (paper 64) [96 maybe better]
 kernel_size = (5, 5)  # conv kenel size
 strides     = 2       # conv strides
-size_init   = 4       # in the paper 4
+size_init   = 16       # in the paper 4
 leakage     = 0.01    # leaky relu constant
 
 # number of GPUs
@@ -839,10 +839,12 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             with open("is_history.txt", "wb") as fp:
                 pickle.dump(is_history, fp)
 
-            plt.errorbar(np.array([i for i in range(epoch)]),
-                         np.array([element[0] for element in is_history]),
-                         np.array([element[1] for element in is_history]),
-                         linestyle='None', marker='^')
+            is_plot = plt.errorbar(np.array([i for i in range(len(is_history))]),
+                                   np.array([element[0] for element in is_history]),
+                                   np.array([element[1] for element in is_history]),
+                                   linestyle='None', marker='^')
+
+            plt.savefig("is_plot.png")
 
         #########################################################
 
