@@ -808,6 +808,36 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         print(' gen  accu  = ', np.mean([item[5] for item in discriminator_history[-num_macro_batches:]]))
         print(' disc accu  = ', np.mean([item[4] for item in discriminator_history[-num_macro_batches:]]))
 
+
+
+        #########################################################
+
+        if epoch%10==0:
+
+            print('Inception Score - image generation...')
+            is_img = []
+            for i in tqdm(range(is_n_batch)):
+                # is input stuff
+                is_noise = np.random.randn(num_labels * batch_size, latent_dim)
+                is_labels = np.tile(np.eye(num_labels), batch_size).transpose()
+                is_labels_with_noise = np.concatenate((is_labels, is_noise), axis=1)
+
+                # recall generator
+                is_img.append(session.run([is_samples],
+                                          feed_dict={is_input: is_labels_with_noise}))
+
+            # Inception Score
+            is_image = np.array(is_img).reshape(-1, resolution_image, resolution_image, channels)
+            print('Inception score images shape: ', is_image.shape)
+            is_result = inception_score.main(is_image.transpose([0, 3, 1, 2]))
+            print('INCEPTION SCORE: mean: ', is_result[0], ' std: ', is_result[1])
+
+            is_history.append([elem for elem in is_result])
+            #disc_sum = plt.plot(np.array([item[0] for item in discriminator_history]), label='ALL')
+
+        #########################################################
+
+
         # save_path = saver.save(session, "/tmp/model.ckpt")
 
         if not os.path.exists('./model'):
@@ -823,21 +853,24 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
     # END FOR EPOCHS
 
-    print('Inception Score - image generation...')
-    is_img = []
-    for i in tqdm(range(is_n_batch)):
-        # is input stuff
-        is_noise = np.random.randn(num_labels * batch_size, latent_dim)
-        is_labels = np.tile(np.eye(num_labels), batch_size).transpose()
-        is_labels_with_noise = np.concatenate((is_labels, is_noise), axis=1)
-
-        # recall generator
-        is_img.append(session.run([is_samples],
-                                  feed_dict={is_input: is_labels_with_noise}))
-# END SESSION
-
+        """
+        print('Inception Score - image generation...')
+        is_img = []
+        for i in tqdm(range(is_n_batch)):
+            # is input stuff
+            is_noise = np.random.randn(num_labels * batch_size, latent_dim)
+            is_labels = np.tile(np.eye(num_labels), batch_size).transpose()
+            is_labels_with_noise = np.concatenate((is_labels, is_noise), axis=1)
+    
+            # recall generator
+            is_img.append(session.run([is_samples],
+                                      feed_dict={is_input: is_labels_with_noise}))
+        """
+    # END SESSION
+"""
 # Inception Score
 is_image = np.array(is_img).reshape(-1, resolution_image, resolution_image, channels)
 print('Inception score images shape: ', is_image.shape)
 is_mean, is_std = inception_score.main(is_image.transpose([0, 3, 1, 2]))
 print('INCEPTION SCORE: mean: ', is_mean, ' std: ', is_std)
+"""
