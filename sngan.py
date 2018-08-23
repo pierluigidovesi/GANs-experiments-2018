@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 # import tqdm only if previously installed
 try:
     from tqdm import tqdm
-
     im_tqdm = True
 except:
     im_tqdm = False
@@ -56,7 +55,7 @@ size_init   = 4       # in the paper 4
 leakage     = 0.01    # leaky relu constant
 
 # number of GPUs
-N_GPU = 2             # need to change if many gpu!
+N_GPU = 1             # need to change if many gpu!
 
 # verbose
 fixed_noise = True       # always use same noise for image samples
@@ -65,6 +64,8 @@ always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
 check_in_out = False     # print disc images and values
 version = "gan"
+sngan = True
+
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -342,8 +343,14 @@ def discriminator(images, reuse=None, n_conv_layer=3):
             print("constant print:" + "(" + str(i) + ")")
             b = tf.get_variable("constant" + str(i), [n_filters * const_filt], initializer=tf.constant_initializer(0.0))
             print(b)
+
+            if sngan:
+                pesi = spectral_norm(w, i)
+            else:
+                pesi = w
+
             output = tf.nn.conv2d(input=output,
-                                  filter=spectral_norm(w, i), # <-- HERE SPECTRAL NORM!
+                                  filter=pesi,
                                   strides=[1, strides, strides, 1],
                                   padding='SAME',
                                   data_format=channels_code) + b
@@ -752,7 +759,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             disc_line = plt.plot(np.asarray([item[0] for item in discriminator_history]), label='DISC')
             gen_line = plt.plot(np.asarray([item[0] for item in generator_history]), label='GEN')
             plt.legend()
-            plt.savefig("GD_losses.png")
+            plt.savefig("GD_losses.png")+
 
             # discriminator losses
             plt.figure()
