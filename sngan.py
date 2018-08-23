@@ -41,7 +41,7 @@ is_n_batch = 20       # number of batches for EACH class for Inception Score eva
 
 # Losses parameters
 wasserst_w = 1        # wasserstain weight (always 1)
-grad_pen_w = 40       # in the paper 10
+grad_pen_w = 10       # in the paper 10
 learn_rate = 2e-4     # in the paper 1/2e-4
 beta1_opti = 0.5      # in the paper 0.5
 beta2_opti = 0.9      # in the paper 0.9
@@ -59,6 +59,7 @@ leakage     = 0.01    # leaky relu constant
 N_GPU = 1             # need to change if many gpu!
 
 # verbose
+is_freq = 1
 fixed_noise = True       # always use same noise for image samples
 sample_repetitions = 10  # to get more rows of images of same epoch in same plot (always put highest value)
 always_get_loss = True   # get loss each epoch
@@ -623,6 +624,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
     # init losses history
     discriminator_history = []
     generator_history = []
+    is_history = []
 
     # init label weight
     labels_incremental_weight = 0
@@ -813,7 +815,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         #########################################################
 
-        if epoch%10==0:
+        if epoch%is_freq==0:
 
             print('Inception Score - image generation...')
             is_img = []
@@ -836,8 +838,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             is_history.append([elem for elem in is_result])
             with open("is_history.txt", "wb") as fp:
                 pickle.dump(is_history, fp)
-            
-            is_plot = plt.errorbar(np.array([item[0] for item in is_history]), label='inception score')
+
+            plt.errorbar(np.array([i for i in range(epoch)]),
+                         np.array([element[0] for element in is_history]),
+                         np.array([element[1] for element in is_history]),
+                         linestyle='None', marker='^')
 
         #########################################################
 
