@@ -182,7 +182,7 @@ def generate_images(images, epoch, repetitions=1):
             plt.imshow(new_image)
             plt.axis("off")
 
-    plt.title("Epoch "+str(epoch))
+    plt.suptitle("Epoch "+str(epoch))
     plt.axis("off")
     plt.savefig("sample_epoch_" + str(epoch) + ".png")
     if always_show_fig:
