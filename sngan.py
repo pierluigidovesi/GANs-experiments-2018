@@ -21,7 +21,7 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 3600*10       # seconds
+timer = 3600*30       # seconds
 
 # random seed
 seed = 200
@@ -34,11 +34,11 @@ cifar10_data = True   # 32 32 (3)
 
 # GAN architecture
 sngan      = True     # spectral normalization
-num_epochs = 200      # tot epochs
+num_epochs = 300      # tot epochs
 batch_size = 64       # micro batch size
-disc_iters = 50       # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 10       # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128      # input dim (paper 128, but suggested 64)
-is_n_batch = 10       # number of batches for EACH class for Inception Score evaluation
+is_n_batch = 80       # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
 wasserst_w = 1        # wasserstain weight (always 1)
@@ -53,14 +53,14 @@ label_satu = 1        # max label weight
 const_filt  = 96      # number of filters (paper 64) [96 maybe better]
 kernel_size = (5, 5)  # conv kenel size
 strides     = 2       # conv strides
-size_init   = 16       # in the paper 4
+size_init   = 4       # in the paper 4
 leakage     = 0.01    # leaky relu constant
 
 # number of GPUs
-N_GPU = 1             # need to change if many gpu!
+N_GPU = 2             # need to change if many gpu!
 
 # verbose
-is_freq = 1
+is_freq = 10
 fixed_noise = True       # always use same noise for image samples
 sample_repetitions = 10  # to get more rows of images of same epoch in same plot (always put highest value)
 always_get_loss = True   # get loss each epoch
@@ -437,6 +437,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
     test_input = tf.placeholder(tf.float32, shape=[sample_repetitions * num_labels, latent_dim + num_labels])
     test_samples = generator(num_labels, test_input, reuse=True)
 
+
     # Inception Score SAMPLES
     print('----------------- G: Inception Score SAMPLES    -----------------')
     is_input = tf.placeholder(tf.float32, shape=[batch_size * num_labels, latent_dim + num_labels])
@@ -596,6 +597,8 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
     print(' - - - - - - - - - - TRAIN - - - - - - - - - - ')
     # with tf.Session() as session:
 
+
+    """
     # TF Saver
     saver = tf.train.Saver()
     # continue training
@@ -607,6 +610,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         print('saver: variables restored!')
     except:
         print('saver: nothing to restore.')
+    """
 
     # restore batch_size
     batch_size = int(batch_size * len(DEVICES))
@@ -679,7 +683,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # create latent space
                 discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
-                print(np.sum(discriminator_labels_with_noise[:,:10], axis=0)/np.sum(discriminator_labels_with_noise[:,:10]))
+                #print(np.sum(discriminator_labels_with_noise[:,:10], axis=0)/np.sum(discriminator_labels_with_noise[:,:10]))
 
                 # train disc
                 # disc_cost, dw_cost, d_gradpen, d_lab_cost, disc_accuracy, gen_accuracy, _
@@ -859,15 +863,21 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         #########################################################
 
+        inputs = {"test_input": test_input}
+        outputs = {"test_samples": test_samples}
+
+        tf.saved_model.simple_save(session, '',inputs=inputs, outputs=outputs)
 
         # save_path = saver.save(session, "/tmp/model.ckpt")
 
+        """
         if not os.path.exists('./model'):
             os.makedirs('./model')
 
         # saver.save(session, './model/saving_' + str(epoch))  # 2 seconds needed
         saver.save(session, './model/model.ckpt')
         saver.save(session, './model.ckpt')
+        """
 
         if total_time >= timer:
             print(' - - - - - TIME OUT! - - - - - ')
