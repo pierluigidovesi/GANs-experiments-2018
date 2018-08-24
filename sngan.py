@@ -33,6 +33,7 @@ fashion_data = False  # 28 28 (1)
 cifar10_data = True   # 32 32 (3)
 
 # GAN architecture
+sngan      = True     # spectral normalization
 num_epochs = 200      # tot epochs
 batch_size = 64       # micro batch size
 disc_iters = 50       # Number of discriminator updates each generator update. The paper uses 5.
@@ -66,7 +67,7 @@ always_get_loss = True   # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
 check_in_out = False     # print disc images and values
 version = "gan"
-sngan = True
+
 
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
@@ -118,6 +119,7 @@ def print_log():
     print('ch_first_d:  ', channel_first_disc)
 
     print('2. GAN ARCHITECTURE')
+    print('sngan:       ', sngan)
     print('num_epochs:  ', num_epochs)
     print('batch_size:  ', batch_size)
     print('disc_iters:  ', disc_iters)
@@ -165,6 +167,7 @@ def generate_images(images, epoch, repetitions=1):
 
     names = ['airplane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
     plt.figure(figsize=(10 * num_labels, 10 * repetitions))
+    plt.suptitle("Epoch " + str(epoch))
     test_image_stack = np.squeeze((np.array(images, dtype=np.float32) * 0.5) + 0.5)
 
     for j in range(repetitions):
@@ -182,7 +185,6 @@ def generate_images(images, epoch, repetitions=1):
             plt.imshow(new_image)
             plt.axis("off")
 
-    plt.suptitle("Epoch "+str(epoch))
     plt.axis("off")
     plt.savefig("sample_epoch_" + str(epoch) + ".png")
     if always_show_fig:
@@ -795,13 +797,20 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             plt.close('all')
 
             # save txt logs
-            loss_file = open('gen_losses.txt', 'w')
+            ''' loss_file = open('gen_losses.txt', 'w')
             for item in generator_history:
                 loss_file.write("%s\n" % item)
 
             loss_file = open('disc_losses.txt', 'w')
             for item in discriminator_history:
                 loss_file.write("%s\n" % item)
+            '''
+
+            with open("gen_losses.txt", "wb") as gl:
+                pickle.dump(generator_history, gl)
+
+            with open("disc_losses.txt", "wb") as dl:
+                pickle.dump(discriminator_history, dl)
 
         total_time = time.time() - init_time
         print(' cycle time:  ', time.time() - start_time, " - total time: ", total_time)
@@ -835,16 +844,16 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             is_result = inception_score.main(is_image.transpose([0, 3, 1, 2]))
             print('INCEPTION SCORE: mean: ', is_result[0], ' std: ', is_result[1])
 
-            is_history.append([elem for elem in is_result])
-            with open("is_history.txt", "wb") as fp:
-                pickle.dump(is_history, fp)
-
             is_plot = plt.errorbar(np.array([i for i in range(len(is_history))]),
                                    np.array([element[0] for element in is_history]),
                                    np.array([element[1] for element in is_history]),
-                                   linestyle='None', marker='^')
+                                   linestyle='-', marker='o')
 
             plt.savefig("is_plot.png")
+
+            is_history.append([elem for elem in is_result])
+            with open("is_history.txt", "wb") as fp:
+                pickle.dump(is_history, fp)
 
         #########################################################
 
