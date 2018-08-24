@@ -679,7 +679,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # create latent space
                 discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
-                print(discriminator_labels_with_noise[:,7:10])
+                print(discriminator_labels_with_noise[:,:10])
 
                 # train disc
                 # disc_cost, dw_cost, d_gradpen, d_lab_cost, disc_accuracy, gen_accuracy, _
