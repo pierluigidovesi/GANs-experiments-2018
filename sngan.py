@@ -36,9 +36,9 @@ cifar10_data = True   # 32 32 (3)
 sngan      = True     # spectral normalization
 num_epochs = 300      # tot epochs
 batch_size = 64       # micro batch size
-disc_iters = 50       # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 8        # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128      # input dim (paper 128, but suggested 64)
-is_n_batch = 10       # number of batches for EACH class for Inception Score evaluation
+is_n_batch = 50       # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
 wasserst_w = 1        # wasserstain weight (always 1)
