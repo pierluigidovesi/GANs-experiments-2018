@@ -863,10 +863,10 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         #########################################################
 
-        inputs = {"test_input": test_input}
-        outputs = {"test_samples": test_samples}
+            inputs = {"test_input": test_input}
+            outputs = {"test_samples": test_samples}
 
-        tf.saved_model.simple_save(session, '',inputs=inputs, outputs=outputs)
+            tf.saved_model.simple_save(session, './models/epoch_'+str(epoch),inputs=inputs, outputs=outputs)
 
         # save_path = saver.save(session, "/tmp/model.ckpt")
 
