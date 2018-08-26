@@ -57,7 +57,7 @@ size_init   = 4       # in the paper 4
 leakage     = 0.01    # leaky relu constant
 
 # number of GPUs
-N_GPU = 1             # need to change if many gpu!
+N_GPU = 2             # need to change if many gpu!
 
 # verbose
 is_freq = 10
