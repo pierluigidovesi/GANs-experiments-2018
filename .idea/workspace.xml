@@ -4,9 +4,8 @@
     <bookmark url="file://$PROJECT_DIR$/.." />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c8d67dd8-0246-4a9a-a91f-4ae4462819b5" name="Default" comment="fix">
+    <list default="true" id="c8d67dd8-0246-4a9a-a91f-4ae4462819b5" name="Default" comment="grad pen 10&#10;disc iter 10&#10;filters 96">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sngan.py" beforeDir="false" afterPath="$PROJECT_DIR$/sngan.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -56,18 +55,18 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="py" value="503" />
-          <entry key="txt" value="24" />
+          <entry key="txt" value="59" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="PLAIN_TEXT" value="24" />
+          <entry key="PLAIN_TEXT" value="59" />
           <entry key="Python" value="503" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="2" />
+          <entry key="project.closed" value="3" />
           <entry key="project.open.time.11" value="1" />
           <entry key="project.open.time.18" value="1" />
           <entry key="project.open.time.8" value="2" />
@@ -90,8 +89,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/sngan.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="638">
-              <caret line="52" column="16" selection-start-line="52" selection-start-column="16" selection-end-line="52" selection-end-column="16" />
+            <state relative-caret-position="-377">
+              <caret line="32" column="16" lean-forward="true" selection-start-line="32" selection-start-column="16" selection-end-line="32" selection-end-column="16" />
               <folding>
                 <element signature="e#0#22#0" expanded="true" />
               </folding>
@@ -343,7 +342,14 @@
       <option name="project" value="LOCAL" />
       <updated>1535121658754</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="grad pen 10&#10;disc iter 10&#10;filters 96">
+      <created>1535295921708</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1535295921708</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -375,7 +381,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="is_freq + errorbar" />
     <MESSAGE value="fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix" />
+    <MESSAGE value="grad pen 10&#10;disc iter 10&#10;filters 96" />
+    <option name="LAST_COMMIT_MESSAGE" value="grad pen 10&#10;disc iter 10&#10;filters 96" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/progressive.py">
@@ -396,8 +403,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/sngan.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="638">
-          <caret line="52" column="16" selection-start-line="52" selection-start-column="16" selection-end-line="52" selection-end-column="16" />
+        <state relative-caret-position="-377">
+          <caret line="32" column="16" lean-forward="true" selection-start-line="32" selection-start-column="16" selection-end-line="32" selection-end-column="16" />
           <folding>
             <element signature="e#0#22#0" expanded="true" />
           </folding>
