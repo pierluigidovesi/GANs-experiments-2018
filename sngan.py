@@ -21,7 +21,7 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 3600*30       # seconds
+timer = 3600*50       # seconds
 
 # random seed
 seed = 200
@@ -36,9 +36,9 @@ cifar10_data = True   # 32 32 (3)
 sngan      = True     # spectral normalization
 num_epochs = 300      # tot epochs
 batch_size = 64       # micro batch size
-disc_iters = 8        # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 5        # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128      # input dim (paper 128, but suggested 64)
-is_n_batch = 50       # number of batches for EACH class for Inception Score evaluation
+is_n_batch = 80       # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
 wasserst_w = 1        # wasserstain weight (always 1)
@@ -50,7 +50,7 @@ label_incr = 1        # increment of labels weight (saturate in 1)
 label_satu = 1        # max label weight
 
 # CONV Parameters
-const_filt  = 96      # number of filters (paper 64) [96 maybe better]
+const_filt  = 64      # number of filters (paper 64) [96 maybe better]
 kernel_size = (5, 5)  # conv kenel size
 strides     = 2       # conv strides
 size_init   = 4       # in the paper 4
