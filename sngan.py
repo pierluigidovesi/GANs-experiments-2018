@@ -862,7 +862,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 pickle.dump(is_history, fp)
 
         #########################################################
-
+        if epoch%(5*is_freq) == 0:
             inputs = {"test_input": test_input}
             outputs = {"test_samples": test_samples}
 
