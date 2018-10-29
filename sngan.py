@@ -33,7 +33,7 @@ fashion_data = False  # 28 28 (1)
 cifar10_data = True   # 32 32 (3)
 
 # GAN architecture
-sngan      = True     # spectral normalization
+sngan      = False    # spectral normalization
 num_epochs = 300      # tot epochs
 batch_size = 64       # micro batch size
 disc_iters = 10       # Number of discriminator updates each generator update. The paper uses 5.
