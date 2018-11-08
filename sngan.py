@@ -33,7 +33,7 @@ fashion_data = False  # 28 28 (1)
 cifar10_data = True   # 32 32 (3)
 
 # GAN architecture
-sngan      = False    # spectral normalization
+sngan      = True     # spectral normalization
 num_epochs = 300      # tot epochs
 batch_size = 64       # micro batch size
 disc_iters = 10       # Number of discriminator updates each generator update. The paper uses 5.
@@ -42,7 +42,7 @@ is_n_batch = 80       # number of batches for EACH class for Inception Score eva
 
 # Losses parameters
 wasserst_w = 1        # wasserstain weight (always 1)
-grad_pen_w = 10       # in the paper 10
+grad_pen_w = 0        # in the paper 10
 learn_rate = 2e-4     # in the paper 1/2e-4
 beta1_opti = 0.5      # in the paper 0.5
 beta2_opti = 0.9      # in the paper 0.9
