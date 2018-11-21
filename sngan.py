@@ -41,7 +41,7 @@ latent_dim = 128      # input dim (paper 128, but suggested 64)
 is_n_batch = 80       # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
-wasserst_w = 0        # wasserstain weight (always 1)
+wasserst_w = 1        # wasserstain weight (always 1)
 grad_pen_w = 0        # in the paper 10
 learn_rate = 2e-4     # in the paper 1/2e-4
 beta1_opti = 0.5      # in the paper 0.5
