@@ -8,12 +8,14 @@ import tensorflow as tf
 from tensorflow import layers
 import time
 import matplotlib
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # import tqdm only if previously installed
 try:
     from tqdm import tqdm
+
     im_tqdm = True
 except:
     im_tqdm = False
@@ -21,54 +23,52 @@ except:
 # --------- SETTINGS ---------
 
 # max time allowed
-timer = 3600*50       # seconds
+timer = 3600 * 50  # seconds
 
 # random seed
 seed = 200
 np.random.seed(seed)
 
 # Dataset
-mnist_data   = True  # 28 28 (1)
+mnist_data = True  # 28 28 (1)
 fashion_data = False  # 28 28 (1)
-cifar10_data = False   # 32 32 (3)
+cifar10_data = False  # 32 32 (3)
 
 # GAN architecture
-sngan      = True     # spectral normalization
-num_epochs = 300      # tot epochs
-batch_size = 64       # micro batch size
-disc_iters = 10       # Number of discriminator updates each generator update. The paper uses 5.
-latent_dim = 128      # input dim (paper 128, but suggested 64)
-is_n_batch = 80       # number of batches for EACH class for Inception Score evaluation
+sngan = True  # spectral normalization
+num_epochs = 300  # tot epochs
+batch_size = 64  # micro batch size
+disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
+latent_dim = 128  # input dim (paper 128, but suggested 64)
+is_n_batch = 80  # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
-wasserst_w = 1        # wasserstain weight (always 1)
-grad_pen_w = 10        # in the paper 10
-learn_rate = 2e-4     # in the paper 1/2e-4
-beta1_opti = 0.5      # in the paper 0.5
-beta2_opti = 0.9      # in the paper 0.9
-label_incr = 1        # increment of labels weight (saturate in 1)
-label_satu = 1        # max label weight
+wasserst_w = 1  # wasserstain weight (always 1)
+grad_pen_w = 10  # in the paper 10
+learn_rate = 2e-4  # in the paper 1/2e-4
+beta1_opti = 0.5  # in the paper 0.5
+beta2_opti = 0.9  # in the paper 0.9
+label_incr = 1  # increment of labels weight (saturate in 1)
+label_satu = 1  # max label weight
 
 # CONV Parameters
-const_filt  = 96      # number of filters (paper 64) [96 maybe better]
+const_filt = 96  # number of filters (paper 64) [96 maybe better]
 kernel_size = (5, 5)  # conv kenel size
-strides     = 2       # conv strides
-size_init   = 4       # in the paper 4
-leakage     = 0.01    # leaky relu constant
+strides = 2  # conv strides
+size_init = 4  # in the paper 4
+leakage = 0.01  # leaky relu constant
 
 # number of GPUs
-N_GPU = 2             # need to change if many gpu!
+N_GPU = 2  # need to change if many gpu!
 
 # verbose
 is_freq = 10
-fixed_noise = True       # always use same noise for image samples
+fixed_noise = True  # always use same noise for image samples
 sample_repetitions = 10  # to get more rows of images of same epoch in same plot (always put highest value)
-always_get_loss = True   # get loss each epoch
+always_get_loss = True  # get loss each epoch
 always_show_fig = False  # real time show test samples each epoch (do not work in backend)
-check_in_out = False     # print disc images and values
+check_in_out = False  # print disc images and values
 version = "gan"
-
-
 
 # --------- DEPENDENT PARAMETERS AND PRINTS---------
 
@@ -193,7 +193,6 @@ def generate_images(images, epoch, repetitions=1):
 
 
 def generator(n_samples, noise_with_labels, reuse=None):
-
     # (if image size is a power of 2 --> you can: n_filter = image_res/n_filter)
     # get number of layers and filters
 
@@ -306,7 +305,6 @@ def spectral_norm(w, i, iteration=1):
 
 
 def discriminator(images, reuse=None, n_conv_layer=3):
-
     if channel_first_disc:
         channels_key = 'channels_first'
         channels_code = "NCHW"
@@ -410,15 +408,15 @@ print(X_train.shape)
 
 # reshape and merge train and test data
 X_train_original = (X_train - 127.5) / 127.5
-
 X_train = np.reshape(X_train, newshape=[-1, OUTPUT_DIM])
 X_test = np.reshape(X_test, newshape=[-1, OUTPUT_DIM])
 X_train = np.concatenate((X_train, X_test), axis=0)
 X_train = (X_train - 127.5) / 127.5
 
 # test per XXXXXXXXX
-X_train = X_train[:,[0,1,2,3,4,5,6,7,9,8]]
-
+print("BEFORE")
+print(X_train.shape)
+print(X_train.shape)
 
 # merge and one hot train and test labels
 if mnist_data or fashion_data:
@@ -431,7 +429,7 @@ y_hot = np.zeros((y_train.shape[0], num_labels))
 b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
 y_train = y_hot
-y_train = y_train[:,[0,1,2,3,4,5,6,7,9,8]]
+y_train = y_train[:, [0, 1, 2, 3, 4, 5, 6, 7, 9, 8]]
 # ========================== TENSORFLOW SESSION =================================== #
 
 # TF Session
@@ -440,7 +438,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
     print('----------------- G: TEST SAMPLES    -----------------')
     test_input = tf.placeholder(tf.float32, shape=[sample_repetitions * num_labels, latent_dim + num_labels])
     test_samples = generator(num_labels, test_input, reuse=True)
-
 
     # Inception Score SAMPLES
     print('----------------- G: Inception Score SAMPLES    -----------------')
@@ -601,7 +598,6 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
     print(' - - - - - - - - - - TRAIN - - - - - - - - - - ')
     # with tf.Session() as session:
 
-
     """
     # TF Saver
     saver = tf.train.Saver()
@@ -687,7 +683,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 # create latent space
                 discriminator_labels_with_noise = np.concatenate((img_labels, noise), axis=1)
 
-                #print(np.sum(discriminator_labels_with_noise[:,:10], axis=0)/np.sum(discriminator_labels_with_noise[:,:10]))
+                # print(np.sum(discriminator_labels_with_noise[:,:10], axis=0)/np.sum(discriminator_labels_with_noise[:,:10]))
 
                 # train disc
                 # disc_cost, dw_cost, d_gradpen, d_lab_cost, disc_accuracy, gen_accuracy, _
@@ -830,11 +826,9 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
         print(' gen  accu  = ', np.mean([item[5] for item in discriminator_history[-num_macro_batches:]]))
         print(' disc accu  = ', np.mean([item[4] for item in discriminator_history[-num_macro_batches:]]))
 
-
-
         #########################################################
 
-        if epoch%is_freq==0 and not mnist_data:
+        if epoch % is_freq == 0 and not mnist_data:
 
             print('Inception Score - image generation...')
             is_img = []
@@ -866,11 +860,11 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
                 pickle.dump(is_history, fp)
 
         #########################################################
-        if epoch%(5*is_freq) == 0 and not mnist_data:
+        if epoch % (5 * is_freq) == 0 and not mnist_data:
             inputs = {"test_input": test_input}
             outputs = {"test_samples": test_samples}
 
-            tf.saved_model.simple_save(session, './models/epoch_'+str(epoch),inputs=inputs, outputs=outputs)
+            tf.saved_model.simple_save(session, './models/epoch_' + str(epoch), inputs=inputs, outputs=outputs)
 
         # save_path = saver.save(session, "/tmp/model.ckpt")
 
@@ -887,7 +881,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             print(' - - - - - TIME OUT! - - - - - ')
             break
 
-    # END FOR EPOCHS
+        # END FOR EPOCHS
 
         """
         print('Inception Score - image generation...')
