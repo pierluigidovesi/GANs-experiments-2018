@@ -429,7 +429,7 @@ y_hot = np.zeros((y_train.shape[0], num_labels))
 b = np.arange(y_train.shape[0])
 y_hot[b, y_train] = 1
 y_train = y_hot
-y_train = y_train[:, [0, 1, 2, 3, 4, 5, 6, 7, 9, 8]]
+# y_train = y_train[:, [0, 1, 2, 3, 4, 5, 6, 7, 9, 8]]
 # ========================== TENSORFLOW SESSION =================================== #
 
 # TF Session
@@ -716,7 +716,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
             # generate noise
             generator_noise = np.random.randn(batch_size, latent_dim)
             # generate random labels and make them one hot
-            fake_labels = np.random.randint(low=0, high=num_labels - 1, size=[batch_size, ])
+            fake_labels = np.random.randint(low=0, high=num_labels, size=[batch_size, ])
             fake_labels_onehot = np.zeros((batch_size, 10))
             fake_labels_onehot[np.arange(batch_size), fake_labels] = 1
             # concatenate to create latent space
