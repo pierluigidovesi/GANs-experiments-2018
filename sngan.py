@@ -830,7 +830,7 @@ with tf.Session(config=tf.ConfigProto(allow_soft_placement=True)) as session:
 
         #########################################################
 
-        if epoch%is_freq==0:
+        if epoch%is_freq==0 and not mnist_data:
 
             print('Inception Score - image generation...')
             is_img = []
