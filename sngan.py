@@ -30,9 +30,9 @@ seed = 200
 np.random.seed(seed)
 
 # Dataset
-mnist_data = True  # 28 28 (1)
+mnist_data = False  # 28 28 (1)
 fashion_data = False  # 28 28 (1)
-cifar10_data = False  # 32 32 (3)
+cifar10_data = True  # 32 32 (3)
 
 # GAN architecture
 sngan = True  # spectral normalization
