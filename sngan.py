@@ -38,28 +38,28 @@ cifar10_data = True  # 32 32 (3)
 sngan = True  # spectral normalization
 num_epochs = 300  # tot epochs
 batch_size = 64  # micro batch size
-disc_iters = 10  # Number of discriminator updates each generator update. The paper uses 5.
+disc_iters = 7  # Number of discriminator updates each generator update. The paper uses 5.
 latent_dim = 128  # input dim (paper 128, but suggested 64)
 is_n_batch = 80  # number of batches for EACH class for Inception Score evaluation
 
 # Losses parameters
 wasserst_w = 1  # wasserstain weight (always 1)
 grad_pen_w = 10  # in the paper 10
-learn_rate = 2e-4  # in the paper 1/2e-4
+learn_rate = 1e-4  # in the paper 1/2e-4
 beta1_opti = 0.5  # in the paper 0.5
 beta2_opti = 0.9  # in the paper 0.9
 label_incr = 1  # increment of labels weight (saturate in 1)
 label_satu = 1  # max label weight
 
 # CONV Parameters
-const_filt = 96  # number of filters (paper 64) [96 maybe better]
+const_filt = 64  # number of filters (paper 64) [96 maybe better]
 kernel_size = (5, 5)  # conv kenel size
 strides = 2  # conv strides
-size_init = 4  # in the paper 4
+size_init = 8  # in the paper 4
 leakage = 0.01  # leaky relu constant
 
 # number of GPUs
-N_GPU = 2  # need to change if many gpu!
+N_GPU = 1  # need to change if many gpu!
 
 # verbose
 is_freq = 10
