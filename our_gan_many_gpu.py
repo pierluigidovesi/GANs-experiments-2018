@@ -1,5 +1,9 @@
+import argparse
 import inception_score
 import os, sys
+
+#logs
+import wandb #check here: https://www.wandb.com/
 
 sys.path.append(os.getcwd())
 import numpy as np
@@ -16,6 +20,16 @@ try:
 except:
     im_tqdm = False
 
+    
+# argparse
+parser = argparse.ArgumentParser(description='GAN2018')
+parser.add_argument('--dataset', default='cifar10')
+parser.add_argument('--num_epoch', default=100)
+parser.add_argument('--gp_weight', default=10)
+parser.add_argument('--num_gpus', default=1)
+# etc...
+args = parser.parse_args()
+
 # --------- SETTINGS ---------
 
 # max time allowed
@@ -28,7 +42,12 @@ np.random.seed(seed)
 # Dataset
 mnist_data   = False     # 28 28 (1)
 fashion_data = False     # 28 28 (1)
-cifar10_data = True      # 32 32 (3)
+cifar10_data = False     # 32 32 (3)
+
+if args.dataset=='mnist': mnist_data = True
+if args.dataset=='mnist': fashion_data = True
+if args.dataset=='mnist': cifar10_data = True
+#etc...
 
 # GAN architecture
 num_epochs = 50          # tot epochs
