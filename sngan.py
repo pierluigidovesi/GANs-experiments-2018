@@ -55,7 +55,7 @@ label_satu = 1  # max label weight
 const_filt = 64  # number of filters (paper 64) [96 maybe better]
 kernel_size = (5, 5)  # conv kenel size
 strides = 2  # conv strides
-size_init = 8  # in the paper 4
+size_init = 4  # in the paper 4
 leakage = 0.01  # leaky relu constant
 
 # number of GPUs
