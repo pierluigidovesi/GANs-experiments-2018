@@ -1,0 +1,33 @@
+1. DATASET SETTINGS
+cifar10 dataset
+('res_image:   ', 32)
+('num_labels:  ', 10)
+('channels:    ', 3)
+('ch_first:    ', False)
+('ch_first_d:  ', False)
+2. GAN ARCHITECTURE
+('sngan:       ', True)
+('num_epochs:  ', 500)
+('batch_size:  ', 64)
+('disc_iters:  ', 8)
+('latent_dim:  ', 128)
+('is_n_batch:  ', 80)
+3. LOSSES PARAMETERS
+('wasserst_w:  ', 1)
+('grad_pen_w:  ', 10)
+('learn rate:  ', 0.00015)
+('beta1_opti:  ', 0.5)
+('beta2_opti:  ', 0.9)
+('label_incr:  ', 1)
+('label_satu:  ', 1)
+4. CONV PARAMETERS
+('const_filt:  ', 96)
+('kernel_size: ', (5, 5))
+('strides:     ', 2)
+('size_init:   ', 4)
+('leakage:     ', 0.01)
+5. MISCELLANEOUS
+('used GPUs:   ', ['/gpu:0'])
+('random seed: ', 180)
+('sample rep:  ', 10)
+()
