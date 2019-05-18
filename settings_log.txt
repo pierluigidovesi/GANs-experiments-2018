@@ -18,8 +18,8 @@ cifar10 dataset
 ('learn rate:  ', 0.00015)
 ('beta1_opti:  ', 0.5)
 ('beta2_opti:  ', 0.9)
-('label_incr:  ', 1)
-('label_satu:  ', 1)
+('label_incr:  ', 0)
+('label_satu:  ', 0)
 4. CONV PARAMETERS
 ('const_filt:  ', 96)
 ('kernel_size: ', (5, 5))
