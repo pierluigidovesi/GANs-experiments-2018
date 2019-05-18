@@ -35,7 +35,7 @@ fashion_data = False  # 28 28 (1)
 cifar10_data = True  # 32 32 (3)
 
 # GAN architecture
-sngan = True  # spectral normalization
+sngan = False  # spectral normalization
 num_epochs = 500  # tot epochs
 batch_size = 64  # micro batch size
 disc_iters = 8  # Number of discriminator updates each generator update. The paper uses 5.
@@ -48,8 +48,8 @@ grad_pen_w = 10  # in the paper 10
 learn_rate = 1.5e-4  # in the paper 1/2e-4
 beta1_opti = 0.5  # in the paper 0.5
 beta2_opti = 0.9  # in the paper 0.9
-label_incr = 0  # increment of labels weight (saturate in 1)
-label_satu = 0  # max label weight
+label_incr = 1  # increment of labels weight (saturate in 1)
+label_satu = 1  # max label weight
 
 # CONV Parameters
 const_filt = 96  # number of filters (paper 64) [96 maybe better]
