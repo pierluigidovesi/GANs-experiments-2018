@@ -31,8 +31,8 @@ np.random.seed(seed)
 
 # Dataset
 mnist_data = False  # 28 28 (1)
-fashion_data = False  # 28 28 (1)
-cifar10_data = True  # 32 32 (3)
+fashion_data = True  # 28 28 (1)
+cifar10_data = False  # 32 32 (3)
 
 # GAN architecture
 sngan = False  # spectral normalization
@@ -48,11 +48,11 @@ grad_pen_w = 10  # in the paper 10
 learn_rate = 1.5e-4  # in the paper 1/2e-4
 beta1_opti = 0.5  # in the paper 0.5
 beta2_opti = 0.9  # in the paper 0.9
-label_incr = 0  # increment of labels weight (saturate in 1)
-label_satu = 0  # max label weight
+label_incr = 1  # increment of labels weight (saturate in 1)
+label_satu = 1  # max label weight
 
 # CONV Parameters
-const_filt = 96  # number of filters (paper 64) [96 maybe better]
+const_filt = 64  # number of filters (paper 64) [96 maybe better]
 kernel_size = (5, 5)  # conv kenel size
 strides = 2  # conv strides
 size_init = 4  # in the paper 4
