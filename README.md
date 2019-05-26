@@ -1,1 +1,1 @@
-# our_gan
+# GANs Experiments 2018
